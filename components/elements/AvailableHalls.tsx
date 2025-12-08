@@ -190,7 +190,7 @@ const HallCard = ({ hall }: HallCardProps) => {
 const AvailableHalls = () => {
   return (
     <section className="py-12 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 lg:px-0">
         {/* Header */}
         <h2 className="text-2xl font-bold text-gray-900 mb-8">
           Available Halls

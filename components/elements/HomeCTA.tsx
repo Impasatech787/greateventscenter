@@ -14,7 +14,7 @@ const HomeCTA = () => {
           }}
         >
           <div className="px-8 md:px-12 py-12 md:py-16 max-w-md">
-            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight mb-4">
+            <h2 className="font-manrope text-3xl md:text-4xl font-bold text-white leading-tight mb-4">
               Ready to elevate
               <br />
               <span className="text-gray-400">your next event?</span>

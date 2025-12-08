@@ -163,7 +163,7 @@ const MovieLists = () => {
 
   return (
     <section className="py-12 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto md:px-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
