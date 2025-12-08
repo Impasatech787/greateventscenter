@@ -26,7 +26,7 @@ const companyLinks: FooterLink[] = [
 const Footer = () => {
   return (
     <footer className="bg-white border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="container px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Column */}
           <div className="flex flex-col gap-5">

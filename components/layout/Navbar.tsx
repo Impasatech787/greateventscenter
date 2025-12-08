@@ -10,7 +10,6 @@ import {
   Ticket,
   Phone,
   Mail,
-  ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -55,9 +54,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 py-4">
-      <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
-        <div className="flex items-center justify-between gap-4 md:gap-6 px-4 md:px-6 py-3 rounded-full bg-white shadow-lg w-full md:w-auto">
+    <nav className="fixed top-0 inset-x-0 z-50 md:py-4">
+      <div className="flex items-center justify-center">
+        <div className="w-full md:container flex items-center justify-between gap-4 md:gap-6 px-6  py-4 md:py-3 md:rounded-full bg-white shadow-lg w-full md:w-auto">
           {/* Logo & Brand Name for Mobile */}
           <Link className="flex items-center gap-2" href="/">
             <Image

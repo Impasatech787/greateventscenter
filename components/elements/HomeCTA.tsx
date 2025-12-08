@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 const HomeCTA = () => {
   return (
     <section className="px-4 py-12">
-      <div className="max-w-7xl mx-auto">
+      <div className="container">
         <div
           className="relative overflow-hidden rounded-3xl bg-gray-900"
           style={{

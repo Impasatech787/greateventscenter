@@ -24,7 +24,8 @@ const movies: Movie[] = [
     title: "Mission: Impossible – Fallout",
     duration: "147 MIN",
     genre: "ACTION",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1761948245185-fc300ad20316?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "NOW SHOWING",
   },
   {
@@ -32,7 +33,8 @@ const movies: Movie[] = [
     title: "Cell",
     duration: "98 MIN",
     genre: "DRAMA",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1762356121454-877acbd554bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "NOW SHOWING",
   },
   {
@@ -40,7 +42,8 @@ const movies: Movie[] = [
     title: "American Made",
     duration: "115 MIN",
     genre: "ACTION",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1758232589376-9f3db5aa371d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "UPCOMING",
   },
   {
@@ -48,7 +51,8 @@ const movies: Movie[] = [
     title: "Deepwater Horizon",
     duration: "107 MIN",
     genre: "ACTION",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1761948245703-cbf27a3e7502?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "NOW SHOWING",
   },
   {
@@ -56,7 +60,8 @@ const movies: Movie[] = [
     title: "Top Gun: Maverick",
     duration: "130 MIN",
     genre: "ACTION",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1761948245185-fc300ad20316?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "NOW SHOWING",
   },
   {
@@ -64,7 +69,8 @@ const movies: Movie[] = [
     title: "Interstellar",
     duration: "169 MIN",
     genre: "SCI-FI",
-    image: "/MovieImage.png",
+    image:
+      "https://images.unsplash.com/photo-1758232589376-9f3db5aa371d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     status: "UPCOMING",
   },
 ];
@@ -163,7 +169,7 @@ const MovieLists = () => {
 
   return (
     <section className="py-12 bg-white">
-      <div className="max-w-7xl mx-auto md:px-4">
+      <div className="container px-4">
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>

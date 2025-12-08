@@ -21,7 +21,7 @@ const stats: StatItem[] = [
 const Stats = () => {
   return (
     <section className="py-12 bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto py-12">
+      <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-gray-200">
           {stats.map((stat, index) => (
             <div
