@@ -7,14 +7,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ImageWithFallback } from "@/components/elements/ImageWithFallback";
 import EventBook from "@/components/elements/EventBook";
+import { useState } from "react";
+import LightBox from "@/components/elements/LightBox";
+import ShareModal from "@/components/elements/ShareModal";
 export default function VenueDetailPage() {
   const hall = HALLS_DATA[0];
+  const [isLightBox, setIsLightBox] = useState<boolean>(false);
+  const [imageIndex, setImageIndex] = useState<number>(0);
+  const [shareOpen, setShareOpen] = useState<boolean>(false);
 
   if (!hall) {
     return <div className="py-32">Hall Detail Page</div>;
   }
+  const venueUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/venues/${hall.id}`
+      : `${process.env.NEXT_PUBLIC_BASE_URL || "https://digitallibrary.com"}/articles/${hall.id}`;
 
-  // Mock blocked dates (e.g., next 2 days are booked)
   const today = new Date();
   const blockedDate1 = new Date(today);
   blockedDate1.setDate(today.getDate() + 2);
@@ -51,7 +60,10 @@ export default function VenueDetailPage() {
             </div>
 
             <div className="flex gap-4">
-              <button className="flex items-center gap-2 text-sm font-medium hover:bg-zinc-100 px-3 py-2 rounded-lg transition-colors underline decoration-zinc-200">
+              <button
+                onClick={() => setShareOpen(true)}
+                className="flex items-center gap-2 text-sm font-medium hover:bg-zinc-100 px-3 py-2 rounded-lg transition-colors underline decoration-zinc-200"
+              >
                 <Share2 className="w-4 h-4" /> Share
               </button>
               <button className="flex items-center gap-2 text-sm font-medium hover:bg-zinc-100 px-3 py-2 rounded-lg transition-colors underline decoration-zinc-200">
@@ -60,11 +72,21 @@ export default function VenueDetailPage() {
             </div>
           </div>
         </div>
+        <ShareModal
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          venueName={hall.name}
+          venueUrl={venueUrl}
+        />
 
         {/* Image Grid */}
         <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[300px] md:h-[400px] rounded-2xl overflow-hidden mb-12 relative">
           <div className="col-span-2 row-span-2 relative cursor-pointer hover:opacity-95 transition-opacity">
             <ImageWithFallback
+              onClick={() => {
+                setImageIndex(0);
+                setIsLightBox(true);
+              }}
               src={hall.galleryImages[0]}
               alt="Main"
               className="w-full h-full object-cover"
@@ -72,6 +94,10 @@ export default function VenueDetailPage() {
           </div>
           <div className="col-span-1 row-span-1 relative cursor-pointer hover:opacity-95 transition-opacity">
             <ImageWithFallback
+              onClick={() => {
+                setIsLightBox(true);
+                setImageIndex(1);
+              }}
               src={hall.galleryImages[1]}
               alt="Sub 1"
               className="w-full h-full object-cover"
@@ -79,6 +105,10 @@ export default function VenueDetailPage() {
           </div>
           <div className="col-span-1 row-span-1 relative cursor-pointer hover:opacity-95 transition-opacity rounded-tr-2xl">
             <ImageWithFallback
+              onClick={() => {
+                setIsLightBox(true);
+                setImageIndex(2);
+              }}
               src={hall.galleryImages[2]}
               alt="Sub 2"
               className="w-full h-full object-cover"
@@ -86,6 +116,10 @@ export default function VenueDetailPage() {
           </div>
           <div className="col-span-1 row-span-1 relative cursor-pointer hover:opacity-95 transition-opacity">
             <ImageWithFallback
+              onClick={() => {
+                setIsLightBox(true);
+                setImageIndex(3);
+              }}
               src={hall.galleryImages[3]}
               alt="Sub 3"
               className="w-full h-full object-cover"
@@ -93,6 +127,10 @@ export default function VenueDetailPage() {
           </div>
           <div className="col-span-1 row-span-1 relative cursor-pointer hover:opacity-95 transition-opacity rounded-br-2xl">
             <ImageWithFallback
+              onClick={() => {
+                setIsLightBox(true);
+                setImageIndex(4);
+              }}
               src={hall.galleryImages[4]}
               alt="Sub 4"
               className="w-full h-full object-cover"
@@ -100,11 +138,21 @@ export default function VenueDetailPage() {
             <Button
               variant="secondary"
               className="absolute bottom-4 right-4 bg-white text-black hover:bg-zinc-100 border border-black font-medium text-sm h-8 px-4 shadow-sm"
+              onClick={() => setIsLightBox(true)}
             >
               Show all photos
             </Button>
           </div>
         </div>
+        <LightBox
+          images={hall.galleryImages}
+          isOpen={isLightBox}
+          initialIndex={imageIndex}
+          onClose={() => {
+            setIsLightBox(false);
+            setImageIndex(0);
+          }}
+        />
 
         {/* Two Column Layout */}
         <EventBook hall={hall} />
@@ -148,7 +196,7 @@ export default function VenueDetailPage() {
         {/* Map Placeholder */}
         <div>
           <h2 className="text-2xl font-semibold text-zinc-900 mb-6">
-            Where you'll be
+            Where you&apos;ll be
           </h2>
           <div className="w-full h-[480px] bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400">
             <div className="text-center">

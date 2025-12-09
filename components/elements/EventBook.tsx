@@ -51,7 +51,7 @@ const EventBook: React.FC<{ hall: Hall }> = ({ hall }) => {
     "Full Day (8:00 AM - 11:00 PM)",
   ];
   return (
-    <div>
+    <>
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-20 relative">
         {/* Left Column: Content */}
@@ -86,7 +86,7 @@ const EventBook: React.FC<{ hall: Hall }> = ({ hall }) => {
             </p>
 
             <div className="bg-zinc-50 rounded-2xl p-6 w-full max-w-3xl border border-zinc-100">
-              <div className="flex flex-col md:flex-row gap-8">
+              <div className="flex flex-col md:flex-row justify-center items-center w-full gap-8">
                 <div className="flex-grow">
                   <Calendar
                     mode="single"
@@ -408,7 +408,7 @@ const EventBook: React.FC<{ hall: Hall }> = ({ hall }) => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
