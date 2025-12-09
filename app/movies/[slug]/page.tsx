@@ -244,54 +244,6 @@ export default async function MovieDetailPage({
               ))}
             </div>
           </div>
-
-          <div className="grid gap-4 md:grid-cols-2 mt-8">
-            {movie.showtimes.map((slot) => (
-              <div
-                key={`${slot.label}-${slot.date}-${slot.format}`}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur shadow-xl shadow-red-500/10"
-              >
-                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-red-500 via-orange-400 to-red-600" />
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-rose-200">
-                      {slot.label}
-                    </p>
-                    <p className="text-lg font-semibold text-white">
-                      {slot.date}
-                    </p>
-                  </div>
-                  {slot.premiumTag && (
-                    <span className="inline-flex items-center gap-1 text-xs bg-red-500/15 text-rose-50 px-3 py-1 rounded-full border border-red-400/40">
-                      <Sparkles className="w-3 h-3" />
-                      {slot.premiumTag}
-                    </span>
-                  )}
-                </div>
-
-                <p className="mt-4 text-sm text-slate-200 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-rose-200" />
-                  {slot.format}
-                </p>
-                <p className="text-sm text-slate-300 flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  {slot.theater}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mt-5">
-                  {slot.times.map((time) => (
-                    <Button
-                      key={`${slot.label}-${time}`}
-                      variant="outline"
-                      className="border-red-400/50 text-white hover:border-red-300 hover:text-red-100 bg-white/5"
-                    >
-                      {time}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
