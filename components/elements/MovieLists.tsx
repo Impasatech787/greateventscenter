@@ -1,79 +1,11 @@
 "use client";
 
+import { MOVIES, MovieStatus } from "@/app/data/movies";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { Button } from "../ui/button";
-
-type MovieStatus = "NOW SHOWING" | "UPCOMING";
-
-interface Movie {
-  id: number;
-  title: string;
-  duration: string;
-  genre: string;
-  image: string;
-  status: MovieStatus;
-}
-// For now all the movie should have same image path of /MovieImage.png
-
-const movies: Movie[] = [
-  {
-    id: 1,
-    title: "Mission: Impossible – Fallout",
-    duration: "147 MIN",
-    genre: "ACTION",
-    image:
-      "https://images.unsplash.com/photo-1761948245185-fc300ad20316?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "NOW SHOWING",
-  },
-  {
-    id: 2,
-    title: "Cell",
-    duration: "98 MIN",
-    genre: "DRAMA",
-    image:
-      "https://images.unsplash.com/photo-1762356121454-877acbd554bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "NOW SHOWING",
-  },
-  {
-    id: 3,
-    title: "American Made",
-    duration: "115 MIN",
-    genre: "ACTION",
-    image:
-      "https://images.unsplash.com/photo-1758232589376-9f3db5aa371d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "UPCOMING",
-  },
-  {
-    id: 4,
-    title: "Deepwater Horizon",
-    duration: "107 MIN",
-    genre: "ACTION",
-    image:
-      "https://images.unsplash.com/photo-1761948245703-cbf27a3e7502?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "NOW SHOWING",
-  },
-  {
-    id: 5,
-    title: "Top Gun: Maverick",
-    duration: "130 MIN",
-    genre: "ACTION",
-    image:
-      "https://images.unsplash.com/photo-1761948245185-fc300ad20316?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "NOW SHOWING",
-  },
-  {
-    id: 6,
-    title: "Interstellar",
-    duration: "169 MIN",
-    genre: "SCI-FI",
-    image:
-      "https://images.unsplash.com/photo-1758232589376-9f3db5aa371d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-    status: "UPCOMING",
-  },
-];
 
 const StatusBadge = ({ status }: { status: MovieStatus }) => {
   const isNowShowing = status === "NOW SHOWING";
@@ -93,11 +25,7 @@ const StatusBadge = ({ status }: { status: MovieStatus }) => {
   );
 };
 
-interface MovieCardProps {
-  movie: Movie;
-}
-
-const MovieCard = ({ movie }: MovieCardProps) => {
+const MovieCard = ({ movie }: { movie: (typeof MOVIES)[number] }) => {
   return (
     <div className="flex-shrink-0 w-[220px] group cursor-pointer">
       {/* Movie Poster */}
@@ -117,9 +45,14 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           />
         )}
         {/* Hover Overlay with Book Button */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <Button className="bg-red-600 px-5 py-2 rounded-full text-sm font-medium hover:bg-red-700/90 transition-colors transform scale-90 group-hover:scale-100 duration-300">
-            Book Ticket
+        <div className="absolute inset-0 bg-black/40 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <Button
+            asChild
+            className="bg-red-600 px-5 py-2 rounded-full text-sm font-medium hover:bg-red-700/90 transition-colors transform scale-90 group-hover:scale-100 duration-300"
+          >
+            <Link href={`/movies/${movie.slug}`} aria-label={`Book tickets for ${movie.title}`}>
+              Book Now
+            </Link>
           </Button>
         </div>
         {/* Status Badge */}
@@ -197,7 +130,7 @@ const MovieLists = () => {
               msOverflowStyle: "none",
             }}
           >
-            {movies.map((movie) => (
+            {MOVIES.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>

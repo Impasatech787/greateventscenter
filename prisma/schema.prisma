@@ -13,18 +13,70 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model cinema {
+  id        Int          @id @default(autoincrement())
+  name      String
+  auditoria auditorium[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id])
+model auditorium {
+  id       Int    @id @default(autoincrement())
+  name     String
+  cinema   cinema @relation(fields: [cinemaId], references: [id])
+  cinemaId Int
+  seats    seat[]
+  shows    show[]
+}
+
+model seat {
+  id           Int        @id @default(autoincrement())
+  row          String
+  number       String
+  auditorium   auditorium @relation(fields: [auditoriumId], references: [id])
+  auditoriumId Int
+  seat_type    String
+  bookings     booking[]
+}
+
+model show {
+  id           Int        @id @default(autoincrement())
+  movieTitle   String
+  startAt      DateTime
+  auditorium   auditorium @relation(fields: [auditoriumId], references: [id])
+  auditoriumId Int
+  bookings     booking[]
+}
+
+model user {
+  id           Int       @id @default(autoincrement())
+  email        String?   @unique
+  firstName    String
+  lastName     String
+  passwordHash String?
+  createdAt    DateTime  @default(now())
+  bookings     booking[]
+  accounts     account[]
+}
+
+model account {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  provider          String // "google" | "apple" | "facebook"
+  providerAccountId String // account id from provider
+}
+
+model booking {
+  id              Int      @id @default(autoincrement())
+  show            show     @relation(fields: [showId], references: [id])
+  showId          Int
+  seatId          Int
+  seat            seat     @relation(fields: [seatId], references: [id])
+  status          String // "pending", "paid", "cancelled", "expired"
+  reservedAt      DateTime @default(now())
+  priceCents      Int
+  stripePaymentId String?
+  userId          Int?
+  user            user?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
