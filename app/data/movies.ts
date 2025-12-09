@@ -41,7 +41,8 @@ export const MOVIES: MovieDetail[] = [
     status: "NOW SHOWING",
     rating: "PG-13",
     releaseDate: "Nov 22, 2024",
-    tagline: "The untold story of the witches of Oz takes flight in a spectacular big-screen event.",
+    tagline:
+      "The untold story of the witches of Oz takes flight in a spectacular big-screen event.",
     synopsis:
       "Long before Dorothy, two unlikely friends meet in Oz — one emerald-skinned and misunderstood, the other magnetic and ambitious. Their story of sisterhood, sacrifice, and soaring magic unfolds with sweeping music and lavish staging.",
     image:
@@ -58,7 +59,7 @@ export const MOVIES: MovieDetail[] = [
     showtimes: [
       {
         label: "Today",
-        date: "Mon, Jul 15",
+        date: "Mon, Dec 15",
         format: "IMAX with Laser · Reserved Seating",
         premiumTag: "Most popular",
         theater: "Great Events Cinemas · Downtown",
@@ -66,14 +67,14 @@ export const MOVIES: MovieDetail[] = [
       },
       {
         label: "Tomorrow",
-        date: "Tue, Jul 16",
+        date: "Tue, Dec 16",
         format: "Dolby Atmos · Recliner Seats",
         theater: "Great Events Cinemas · Riverfront",
         times: ["1:20 PM", "4:40 PM", "8:00 PM"],
       },
       {
         label: "Weekend",
-        date: "Sat, Jul 20",
+        date: "Sat, Dec 20",
         format: "Fan Event · Souvenir Poster",
         premiumTag: "Limited seats",
         theater: "Great Events Cinemas · Skyline",
@@ -83,17 +84,28 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "IMAX with Laser",
-        description: "Emerald City glows across a floor-to-ceiling screen with pin-sharp detail.",
-        perks: ["Wall-to-wall visuals", "Precision sound", "Priority seating lanes"],
+        description:
+          "Emerald City glows across a floor-to-ceiling screen with pin-sharp detail.",
+        perks: [
+          "Wall-to-wall visuals",
+          "Precision sound",
+          "Priority seating lanes",
+        ],
       },
       {
         title: "Dolby Atmos",
-        description: "Hear broomstick flights and spellcraft swirl above and around you.",
-        perks: ["360° audio field", "Balanced bass without rumble", "Studio-grade mix"],
+        description:
+          "Hear broomstick flights and spellcraft swirl above and around you.",
+        perks: [
+          "360° audio field",
+          "Balanced bass without rumble",
+          "Studio-grade mix",
+        ],
       },
       {
         title: "VIP Green Room",
-        description: "Arrive early for a crafted mocktail menu and emerald desserts.",
+        description:
+          "Arrive early for a crafted mocktail menu and emerald desserts.",
         perks: ["In-seat ordering", "Heated recliners", "Dedicated host"],
       },
     ],
@@ -130,7 +142,7 @@ export const MOVIES: MovieDetail[] = [
     showtimes: [
       {
         label: "Today",
-        date: "Mon, Jul 15",
+        date: "Mon, Dec 15",
         format: "IMAX 2D · Assigned Seating",
         premiumTag: "Fan favorite",
         theater: "Great Events Cinemas · Downtown",
@@ -138,14 +150,14 @@ export const MOVIES: MovieDetail[] = [
       },
       {
         label: "Tomorrow",
-        date: "Tue, Jul 16",
+        date: "Tue, Dec 16",
         format: "Dolby Cinema · Atmos Sound",
         theater: "Great Events Cinemas · Riverfront",
         times: ["12:30 PM", "3:50 PM", "7:05 PM"],
       },
       {
         label: "Weekend",
-        date: "Sat, Jul 20",
+        date: "Sat, Dec 20",
         format: "4DX · Motion Seats",
         theater: "Great Events Cinemas · Skyline",
         times: ["11:40 AM", "2:55 PM", "6:10 PM", "9:20 PM"],
@@ -154,18 +166,33 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "IMAX Escape",
-        description: "Chase sequences engineered for towering screens and precision detail.",
-        perks: ["Expanded 1.90:1 scenes", "Laser projection", "Reserved aisles"],
+        description:
+          "Chase sequences engineered for towering screens and precision detail.",
+        perks: [
+          "Expanded 1.90:1 scenes",
+          "Laser projection",
+          "Reserved aisles",
+        ],
       },
       {
         title: "4DX Pursuit",
-        description: "Ride every turn with motion seats, wind bursts, and scent effects.",
-        perks: ["Programmed seat motion", "Environmental cues", "Water toggle at seat"],
+        description:
+          "Ride every turn with motion seats, wind bursts, and scent effects.",
+        perks: [
+          "Programmed seat motion",
+          "Environmental cues",
+          "Water toggle at seat",
+        ],
       },
       {
         title: "Night Ops",
-        description: "Late-show screenings with dimmed lobby lighting and quiet entries.",
-        perks: ["Blackout curtains", "Priority parking", "Complimentary espresso"],
+        description:
+          "Late-show screenings with dimmed lobby lighting and quiet entries.",
+        perks: [
+          "Blackout curtains",
+          "Priority parking",
+          "Complimentary espresso",
+        ],
       },
     ],
     cast: [
@@ -201,14 +228,14 @@ export const MOVIES: MovieDetail[] = [
     showtimes: [
       {
         label: "Today",
-        date: "Mon, Jul 15",
+        date: "Mon, Dec 15",
         format: "Standard 2D",
         theater: "Great Events Cinemas · Downtown",
         times: ["12:40 PM", "3:05 PM", "5:30 PM", "8:10 PM"],
       },
       {
         label: "Tomorrow",
-        date: "Tue, Jul 16",
+        date: "Tue, Dec 16",
         format: "Late Show · Quiet Auditorium",
         premiumTag: "Horror row",
         theater: "Great Events Cinemas · Skyline",
@@ -216,7 +243,7 @@ export const MOVIES: MovieDetail[] = [
       },
       {
         label: "Weekend",
-        date: "Sat, Jul 20",
+        date: "Sat, Dec 20",
         format: "Matinee Deal",
         theater: "Great Events Cinemas · Riverfront",
         times: ["10:20 AM", "1:10 PM", "4:00 PM"],
@@ -225,13 +252,23 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "Signal-Free Zone",
-        description: "Faraday pouch check-ins and zero-phone policy enhance the dread.",
-        perks: ["Device lockers", "Darkened aisles", "Front-row aisle guardians"],
+        description:
+          "Faraday pouch check-ins and zero-phone policy enhance the dread.",
+        perks: [
+          "Device lockers",
+          "Darkened aisles",
+          "Front-row aisle guardians",
+        ],
       },
       {
         title: "Midnight Screams",
-        description: "After-hours screenings with raised volume and no trailers.",
-        perks: ["House lights at 5%", "Premium audio", "Complimentary black coffee"],
+        description:
+          "After-hours screenings with raised volume and no trailers.",
+        perks: [
+          "House lights at 5%",
+          "Premium audio",
+          "Complimentary black coffee",
+        ],
       },
       {
         title: "Aisle Safe Seats",
@@ -296,8 +333,13 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "Retro Runway",
-        description: "Classic trailers and 70s playlists in-lobby to set the mood.",
-        perks: ["Vinyl playlist", "Throwback concessions", "Polaroid photo booth"],
+        description:
+          "Classic trailers and 70s playlists in-lobby to set the mood.",
+        perks: [
+          "Vinyl playlist",
+          "Throwback concessions",
+          "Polaroid photo booth",
+        ],
       },
       {
         title: "Cockpit Seats",
@@ -367,12 +409,14 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "Impact Audio",
-        description: "Feel every metal groan and pressure surge with tuned sub-bass.",
+        description:
+          "Feel every metal groan and pressure surge with tuned sub-bass.",
         perks: ["Balanced rumble", "Ear-safe peaks", "Engineer intro track"],
       },
       {
         title: "Safety First",
-        description: "Reserved seating with extra aisle lighting and safety brief.",
+        description:
+          "Reserved seating with extra aisle lighting and safety brief.",
         perks: ["Crew briefing", "Guided exits", "Accessibility escorts"],
       },
       {
@@ -438,8 +482,13 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "Afterburner",
-        description: "Subwoofer tuning mirrors jet engine surges without muddy dialogue.",
-        perks: ["Sweeping sound field", "Dialog clarity", "Balanced high-G rumbles"],
+        description:
+          "Subwoofer tuning mirrors jet engine surges without muddy dialogue.",
+        perks: [
+          "Sweeping sound field",
+          "Dialog clarity",
+          "Balanced high-G rumbles",
+        ],
       },
       {
         title: "Pilot's Row",
@@ -448,7 +497,8 @@ export const MOVIES: MovieDetail[] = [
       },
       {
         title: "Flight Deck Lounge",
-        description: "Pre-show aviation reels and limited-run patches for early arrivals.",
+        description:
+          "Pre-show aviation reels and limited-run patches for early arrivals.",
         perks: ["Collectible patch", "Photo wall", "Zero-proof cocktails"],
       },
     ],
@@ -509,17 +559,24 @@ export const MOVIES: MovieDetail[] = [
     experiences: [
       {
         title: "70mm Revival",
-        description: "Pure photochemical projection with handcrafted reel swaps.",
-        perks: ["Film grain intact", "Projectionist intro", "Collector ticket stock"],
+        description:
+          "Pure photochemical projection with handcrafted reel swaps.",
+        perks: [
+          "Film grain intact",
+          "Projectionist intro",
+          "Collector ticket stock",
+        ],
       },
       {
         title: "Stellar Sound",
-        description: "Organ swells rendered in Atmos with seat-back transducers.",
+        description:
+          "Organ swells rendered in Atmos with seat-back transducers.",
         perks: ["Seat shakers", "Bass-managed organ", "Quiet HVAC mode"],
       },
       {
         title: "Cosmic Prelude",
-        description: "Arrive 20 minutes early for NASA archival footage playlist.",
+        description:
+          "Arrive 20 minutes early for NASA archival footage playlist.",
         perks: ["Curated pre-show", "Minimal ads", "Lighting fade cues"],
       },
     ],
