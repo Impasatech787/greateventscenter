@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withAuth } from "@/lib/withAuth";
 
-export async function GET() {
+export const GET = withAuth(async (req: NextRequest) => {
   const users = await prisma.user.findMany({
   });
   const data = users.map(u => ({
@@ -11,4 +12,4 @@ export async function GET() {
     email: u.email
   }))
   return NextResponse.json({ data, message: "Success!" }, { status: 200 });
-}
+}, ["Admin"]);

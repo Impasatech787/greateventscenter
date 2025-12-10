@@ -5,7 +5,6 @@ import bcrypt from "bcryptjs";
 export async function POST(req: Request) {
   const body = await req.json();
   const { email, firstName, lastName, password } = body;
-  console.log("Received signup data:", body);
   if (!firstName) {
     return NextResponse.json({ error: "First name is required" }, { status: 400 });
   }

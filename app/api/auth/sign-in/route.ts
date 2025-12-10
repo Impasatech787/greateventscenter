@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 export async function POST(req: Request) {
   const body = await req.json();
   const { email, password } = body;
-  console.log("Received signup data:", body);
   if (!email) {
     return NextResponse.json({ message: "Email is required" }, { status: 400 });
   }
@@ -21,7 +20,6 @@ export async function POST(req: Request) {
     },
     where: {email}
   });
-  console.log(user)
   if (user && user.passwordHash) {
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if(isValid) {
