@@ -1,70 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useSignUp } from "@/hooks/useSignUp";
 
-interface SignupForm {
-  email: string;
-  name: string;
-}
-
-interface FormErrors {
-  email?: string;
-  name?: string;
-  general?: string;
-}
 export default function SignupPage() {
-  const [signupForm, setSignupForm] = useState<SignupForm>({
-    email: "",
-    name: "",
-  });
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSignupForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: undefined, general: undefined }));
-  };
-
-  const validate = (form: SignupForm): FormErrors => {
-    const newErrors: FormErrors = {};
-    if (!form.email.trim()) newErrors.email = "Email is required.";
-    if (!form.name.trim()) newErrors.name = "Name is required.";
-    return newErrors;
-  };
-
-  const handleSignUp = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const validationErrors = validate(signupForm);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    console.log("Submitting form:", signupForm);
-    setIsLoading(true);
-    setErrors({});
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(signupForm),
-      });
-      if (!res.ok) {
-        setErrors({ general: "Signup failed. Please try again." });
-      } else {
-        setSignupForm({ email: "", name: "" });
-        setErrors({});
-        // Optionally show a success message or redirect
-      }
-    } catch (error) {
-      console.error("Error during signup:", error);
-      setErrors({ general: "Signup failed. Please try again." });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { signUpForm, errors, handleInputChange, handleSignUp, isLoading } =
+    useSignUp();
 
   return (
     <div className="bg-white">
@@ -76,11 +17,11 @@ export default function SignupPage() {
         >
           <div className="space-y-2 flex flex-col">
             <label className="text-black">Email</label>
-            <input
+            <Input
               type="email"
               name="email"
-              value={signupForm.email}
-              onChange={handleChange}
+              value={signUpForm.email}
+              onChange={handleInputChange}
               className={`bg-slate-100 p-2 md:w-80 text-black ${
                 errors.email ? "border border-red-500" : ""
               }`}
@@ -95,20 +36,20 @@ export default function SignupPage() {
           </div>
           <div className="space-y-2 flex flex-col">
             <label className="text-black">Name</label>
-            <input
+            <Input
               type="text"
               name="name"
-              value={signupForm.name}
-              onChange={handleChange}
+              value={signUpForm.firstName}
+              onChange={handleInputChange}
               className={`bg-slate-100 p-2 md:w-80 text-black ${
-                errors.name ? "border border-red-500" : ""
+                errors.firstName ? "border border-red-500" : ""
               }`}
-              aria-invalid={!!errors.name}
-              aria-describedby={errors.name ? "name-error" : undefined}
+              aria-invalid={!!errors.firstName}
+              aria-describedby={errors.firstName ? "name-error" : undefined}
             />
-            {errors.name && (
+            {errors.firstName && (
               <span id="name-error" className="text-xs text-red-600">
-                {errors.name}
+                {errors.firstName}
               </span>
             )}
           </div>
