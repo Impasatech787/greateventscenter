@@ -181,11 +181,10 @@ export default function ShowtimeCalendarPicker({
           <button
             key={`${slot.label}-${slot.date}`}
             onClick={() => handleDateSelect(slot)}
-            className={`min-w-[150px] rounded-2xl border p-4 backdrop-blur shadow-lg transition-all text-left ${
-              selectedShowtimeData?.date === slot.date
-                ? "border-rose-500/60 bg-rose-500/20 shadow-rose-500/20"
-                : "border-white/10 bg-white/5 shadow-red-500/15 hover:border-white/20 hover:bg-white/10"
-            }`}
+            className={`min-w-[150px] rounded-2xl border p-4 backdrop-blur shadow-lg transition-all text-left ${selectedShowtimeData?.date === slot.date
+              ? "border-rose-500/60 bg-rose-500/20 shadow-rose-500/20"
+              : "border-white/10 bg-white/5 shadow-red-500/15 hover:border-white/20 hover:bg-white/10"
+              }`}
           >
             <div className="flex items-center justify-between text-xs uppercase tracking-wide text-rose-100">
               <span>{slot.label}</span>
@@ -260,15 +259,18 @@ export default function ShowtimeCalendarPicker({
                 <Button
                   key={`${selectedShowtimeData.date}-${time}`}
                   variant="outline"
-                  className={`border-red-400/50 text-white hover:border-red-300 hover:text-red-100 bg-white/5 transition-all ${
-                    selectedTime === time
+                  className={`cursor-pointer border-red-400/50 text-white bg-white/5
+    hover:bg-red-600 hover:text-white 
+    hover:border-red-500 transition-all
+    ${selectedTime === time
                       ? "bg-rose-500/30 border-rose-400 ring-1 ring-rose-400/50"
                       : ""
-                  }`}
+                    }`}
                   onClick={() => handleTimeSelect(time)}
                 >
                   {time}
                 </Button>
+
               ))}
             </div>
           </div>
