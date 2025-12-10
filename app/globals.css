@@ -126,3 +126,14 @@
   max-width: 1200px;
   margin: auto;
 }
+
+h1 {
+  font-family: sans-serif;
+}
+p,
+span,
+h2,
+h3,
+h4 {
+  font-family: "Manrope";
+}

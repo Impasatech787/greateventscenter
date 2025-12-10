@@ -1,6 +1,8 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+type OpenState = Record<number, string | null>;
+
+import React, { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -32,6 +34,7 @@ import {
   Mail,
   PanelLeftClose,
   PanelLeft,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -143,6 +146,11 @@ const menuItems: SideBarMenu[] = [
       {
         title: "Gallery",
         icon: <ImageIcon className="w-4 h-4" />,
+        link: "/back_office/cms/gallery",
+      },
+      {
+        title: "Blogs",
+        icon: <Newspaper className="w-4 h-4" />,
         link: "/back_office/cms/gallery",
       },
     ],
@@ -390,19 +398,45 @@ const CollapsedMenuItem = ({ item }: CollapsedMenuItemProps) => {
 interface MenuItemProps {
   item: SideBarMenu;
   depth?: number;
+  openState: OpenState;
+  setOpenState: React.Dispatch<React.SetStateAction<OpenState>>;
 }
 
-const MenuItem = ({ item, depth = 0 }: MenuItemProps) => {
+const MenuItem = ({
+  item,
+  depth = 0,
+  openState,
+  setOpenState,
+}: MenuItemProps) => {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
   const isActive = item.link && pathname === item.link;
+  const isOpen = openState[depth] == item.title;
   const shouldBeOpen = isOpen || isChildActive(item.children, pathname);
 
   const handleClick = () => {
-    if (hasChildren) {
-      setIsOpen(!isOpen);
-    }
+    if (!hasChildren) return;
+    setOpenState((prev) => {
+      const newState: OpenState = { ...prev };
+      if (prev[depth] === item.title) {
+        Object.keys(newState).forEach((key) => {
+          const numKey = Number(key);
+          if (numKey >= depth) {
+            delete newState[numKey];
+          }
+        });
+      } else {
+        newState[depth] = item.title;
+        Object.keys(newState).forEach((key) => {
+          const numKey = Number(key);
+          if (numKey > depth) {
+            delete newState[numKey];
+          }
+        });
+      }
+      return newState;
+    });
   };
 
   const paddingLeft = depth === 0 ? "pl-4" : depth === 1 ? "pl-8" : "pl-12";
@@ -437,7 +471,13 @@ const MenuItem = ({ item, depth = 0 }: MenuItemProps) => {
         {shouldBeOpen && (
           <div className="mt-1 space-y-1">
             {item.children?.map((child, index) => (
-              <MenuItem key={index} item={child} depth={depth + 1} />
+              <MenuItem
+                key={index}
+                item={child}
+                depth={depth + 1}
+                openState={openState}
+                setOpenState={setOpenState}
+              />
             ))}
           </div>
         )}
@@ -467,6 +507,7 @@ const MenuItem = ({ item, depth = 0 }: MenuItemProps) => {
 const Sidebar = () => {
   const { isExpanded, toggleSidebar, setIsExpanded } = useSidebar();
   const sideBarRef = useRef<HTMLDivElement>(null);
+  const [openState, setOpenState] = useState<OpenState>({});
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -546,7 +587,14 @@ const Sidebar = () => {
         )}
       >
         {isExpanded
-          ? menuItems.map((item, index) => <MenuItem key={index} item={item} />)
+          ? menuItems.map((item, index) => (
+              <MenuItem
+                key={index}
+                item={item}
+                openState={openState}
+                setOpenState={setOpenState}
+              />
+            ))
           : menuItems.map((item, index) => (
               <CollapsedMenuItem key={index} item={item} />
             ))}
