@@ -87,25 +87,38 @@ export default async function MovieDetailPage({ params }: PageProps) {
               </div>
 
               {/* CTA buttons */}
-              <div className="flex flex-col xs:flex-row gap-3 mt-6 sm:mt-8">
+              <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8">
                 <Button
                   asChild
                   size="lg"
-                  className="bg-white text-black hover:bg-white/90 font-bold rounded-xl px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-xl shadow-black/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl w-full xs:w-auto justify-center"
+                  className="flex-1 bg-red-700 text-white hover:bg-red-600 font-bold rounded-xl px-6 sm:px-8 
+               min-h-14 sm:min-h-16          
+               text-base sm:text-lg           
+               shadow-xl shadow-red-700/30 
+               transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl 
+               flex items-center justify-center"
                 >
-                  <Link href="#showtimes">
-                    <Ticket className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <Link href="#showtimes" className="flex items-center justify-center w-full h-full">
+                    <Ticket className="w-5 h-5 mr-2.5" />
                     Book Tickets
                   </Link>
                 </Button>
+
                 <Button
                   size="lg"
-                  className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 font-semibold rounded-xl px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg transition-all duration-300 hover:scale-[1.02] w-full xs:w-auto justify-center"
+                  className="flex-1 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md 
+               border border-white/20 font-semibold rounded-xl px-6 sm:px-8 
+               min-h-14 sm:min-h-16    
+               text-base sm:text-lg 
+               shadow-lg 
+               transition-all duration-300 hover:scale-[1.02] 
+               flex items-center justify-center"
                 >
-                  <Film className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <Film className="w-5 h-5 mr-2.5" />
                   Watch Trailer
                 </Button>
               </div>
+
 
               {/* Highlights tags */}
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-5 sm:mt-6">

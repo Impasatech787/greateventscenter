@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { HALLS_DATA } from "../../data/hall-data";
+import { HALLS_DATA } from "@/app/data/hall-data";
 import { motion } from "framer-motion";
 import { Award, Heart, MapPin, Share2, ShieldCheck, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

@@ -373,7 +373,7 @@ const EventBook: React.FC<{ hall: Hall }> = ({ hall }) => {
               )}
 
               <div className="text-center text-sm text-zinc-500 mb-6">
-                You won't be charged yet
+                You won&apos;t be charged yet
               </div>
 
               {/* Price Breakdown */}

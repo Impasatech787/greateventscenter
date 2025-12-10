@@ -59,7 +59,7 @@ const MoviePageBanner = () => {
     centerPadding: "10%",
     focusOnSelect: true,
     arrows: false,
-    appendDots: (dots: any) => (
+    appendDots: (dots: React.ReactNode) => (
       <div style={{ bottom: "20px" }}>
         <ul
           style={{ margin: "0px" }}
@@ -89,7 +89,7 @@ const MoviePageBanner = () => {
           {heroMovies.map((movie) => (
             <div
               key={movie.id}
-              className="relative w-full h-[60vh] md:h-[70vh] lg:h-[80vh] outline-none px-2 md:px-4"
+              className="relative w-full h-[60vh] md:h-[70vh] lg:h-[90vh] outline-none px-2 md:px-4"
             >
               {/* Card Wrapper */}
               <div className="relative w-full h-full rounded-3xl overflow-hidden transform transition-all duration-500 ring-1 ring-white/10">
