@@ -23,6 +23,7 @@ export const useSignUp = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -37,6 +38,10 @@ export const useSignUp = () => {
     return newErrors;
   };
 
+  const togglePasswordShow = () => {
+    setShowPassword(!showPassword);
+  };
+
   const handleSignUp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const validationErrors = validate(signUpForm);
@@ -47,26 +52,37 @@ export const useSignUp = () => {
     setIsLoading(true);
     setErrors({});
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(signUpForm),
       });
+      const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setErrors({ general: "Signup failed. Please try again." });
+        const message =
+          (data && (data.error || data.message)) ||
+          "Signup failed. Please try again.";
+        setErrors({ general: message });
       } else {
         setSignUpForm({ email: "", firstName: "", lastName: "", password: "" });
         setErrors({});
       }
     } catch (error) {
-      console.error("Error during signup:", error);
       setErrors({ general: "Signup failed. Please try again." });
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { signUpForm, errors, handleInputChange, handleSignUp, isLoading };
+  return {
+    signUpForm,
+    errors,
+    handleInputChange,
+    handleSignUp,
+    togglePasswordShow,
+    showPassword,
+    isLoading,
+  };
 };

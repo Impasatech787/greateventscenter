@@ -45,11 +45,18 @@ export async function POST(req: Request) {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        throw new Error("Email already in use");
+        return NextResponse.json(
+          { error: "Email already in use" },
+          { status: 409 },
+        );
       }
-      throw new Error("Failed to create user");
+      return NextResponse.json(
+        { error: "Failed To Register" },
+        { status: 500 },
+      );
     }
   } catch (error) {
+    console.log(error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
