@@ -54,7 +54,7 @@ const halls: Hall[] = [
   },
   {
     id: 3,
-    name: "Hall C - Executive Meeting Suite",
+    name: "Hall C - Executive Meeting",
     location: "North Tower, Third Floor",
     image: "/MovieImage.png",
     status: "Available",
@@ -104,7 +104,7 @@ const HallCard = ({ hall }: HallCardProps) => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all hover:-translate-y-1 ease-in-out ">
       {/* Image */}
-      <div className="relative h-48 bg-gray-200">
+      <div className="relative h-75 bg-gray-200">
         <Image src={hall.image} alt={hall.name} fill className="object-cover" />
         <div className="absolute top-3 left-3">
           <StatusBadge status={hall.status} />
@@ -112,10 +112,10 @@ const HallCard = ({ hall }: HallCardProps) => {
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className="py-6 px-7">
         {/* Header */}
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-semibold text-gray-900 text-sm">{hall.name}</h3>
+          <h3 className="font-semibold text-gray-900 text-xl">{hall.name}</h3>
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-black text-black" />
             <span className="text-sm font-medium text-gray-700">
@@ -172,12 +172,12 @@ const HallCard = ({ hall }: HallCardProps) => {
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div>
             <span className="text-xs text-gray-500">From </span>
-            <span className="font-bold text-gray-900">${hall.price}</span>
+            <span className="font-bold text-xl text-gray-900">${hall.price}</span><br></br>
             <span className="text-xs text-gray-500"> per 3hr</span>
           </div>
           <Button
-            size="sm"
-            className="bg-red-600 hover:bg-red-700 text-white rounded-full px-5"
+            size="md"
+            className="bg-red-600 hover:bg-red-700 cursor-pointer text-white rounded-full px-6 py-3 shadow-md hover:shadow-lg transition-all"
           >
             Book Now
           </Button>

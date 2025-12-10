@@ -117,6 +117,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -127,13 +128,24 @@
   margin: auto;
 }
 
-h1 {
-  font-family: sans-serif;
-}
-p,
-span,
+h1,
 h2,
 h3,
-h4 {
+h4,
+h5,
+h6 {
+  font-family: sans-serif;
+}
+
+p {
   font-family: "Manrope";
+}
+
+body div,
+body p {
+  font-size: .875rem;
+}
+
+button {
+  cursor: pointer;
 }

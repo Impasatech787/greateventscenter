@@ -37,17 +37,17 @@ const HomeBanner = () => {
           {/* Left: Text Content */}
           <div className="w-full lg:w-1/2 text-left lg:pt-0 z-10 relative pt-[10px] pr-[0px] pb-[0px] pl-[0px]">
             <h1 className="md:text-6xl lg:text-[84px] font-bold tracking-tight mb-6 not-italic leading-[1.1] lg:leading-[1.1] text-[48px]">
-              <span className="text-[rgb(29,29,29)] font-[Manrope]">
+              <span className="text-[rgb(29,29,29)]">
                 Your one-stop venue for{" "}
               </span>
               <br className="hidden lg:block" />
               <RotatingText
                 texts={["events", "movies", "weddings"]}
-                className="text-[#BB2327] font-[Manrope]"
+                className="text-[#BB2327]"
                 interval={3000}
                 onIndexChange={setCurrentTextIndex}
               />
-              <span className="text-[rgb(29,29,29)] font-[Manrope]">.</span>
+              <span className="text-[rgb(29,29,29)]">.</span>
             </h1>
             <p className="text-lg text-zinc-500 mb-8 leading-relaxed max-w-lg">
               Explore our premium halls and venues designed for events of all
