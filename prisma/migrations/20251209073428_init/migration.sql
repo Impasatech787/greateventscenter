@@ -59,6 +59,21 @@ CREATE TABLE "account" (
 );
 
 -- CreateTable
+CREATE TABLE "role" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "role_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "user_role" (
+    "userId" INTEGER NOT NULL,
+    "roleId" INTEGER NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "booking" (
     "id" SERIAL NOT NULL,
     "showId" INTEGER NOT NULL,
@@ -75,6 +90,12 @@ CREATE TABLE "booking" (
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_role_userId_roleId_key" ON "user_role"("userId", "roleId");
+
 -- AddForeignKey
 ALTER TABLE "auditorium" ADD CONSTRAINT "auditorium_cinemaId_fkey" FOREIGN KEY ("cinemaId") REFERENCES "cinema"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -86,6 +107,12 @@ ALTER TABLE "show" ADD CONSTRAINT "show_auditoriumId_fkey" FOREIGN KEY ("auditor
 
 -- AddForeignKey
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_role" ADD CONSTRAINT "user_role_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "user_role" ADD CONSTRAINT "user_role_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "booking" ADD CONSTRAINT "booking_showId_fkey" FOREIGN KEY ("showId") REFERENCES "show"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
