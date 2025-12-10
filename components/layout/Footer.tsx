@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Linkedin } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 interface FooterLink {
@@ -29,8 +30,13 @@ const Footer = () => {
       <div className="container px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Column */}
-          <div className="flex flex-col gap-5">
-            <h2 className="font-bold text-2xl text-gray-900">Great Events.</h2>
+          <div className="flex flex-col gap-2">
+            <Image
+              src="GreatEventsLogo.svg"
+              alt="GreatEvents Center"
+              width={52}
+              height={52}
+            />
             <p className="text-gray-500 text-sm leading-relaxed">
               The premier destination for corporate events, weddings, and
               community gatherings in Omaha.
