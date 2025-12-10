@@ -24,7 +24,6 @@ export async function POST(req: Request) {
       },
       where: { email },
     });
-    console.log(user);
     if (user && user.passwordHash) {
       const isValid = await bcrypt.compare(password, user.passwordHash);
       if (isValid) {

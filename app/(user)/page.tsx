@@ -1,5 +1,5 @@
 import HomeBanner from "@/components/elements/HomeBanner";
-import OurServices from "../components/elements/OurServices";
+import OurServices from "@/components/elements/OurServices";
 import HomeCTA from "@/components/elements/HomeCTA";
 import MovieLists from "@/components/elements/MovieLists";
 import Stats from "@/components/elements/Stats";

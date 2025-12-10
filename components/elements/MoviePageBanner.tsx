@@ -59,7 +59,7 @@ const MoviePageBanner = () => {
     centerPadding: "10%",
     focusOnSelect: true,
     arrows: false,
-    appendDots: (dots: any) => (
+    appendDots: (dots: React.ReactNode) => (
       <div style={{ bottom: "20px" }}>
         <ul
           style={{ margin: "0px" }}

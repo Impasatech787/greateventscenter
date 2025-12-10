@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Users, Car, Volume2, Fan } from "lucide-react";
-import { HALLS_DATA } from "../data/hall-data";
+import { HALLS_DATA } from "@/app/data/hall-data";
 import { ImageWithFallback } from "@/components/elements/ImageWithFallback";
 import { CardStack } from "@/components/elements/CardStack";
 import { RotatingText } from "@/components/elements/RotatingText";

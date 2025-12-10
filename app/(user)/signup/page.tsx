@@ -38,7 +38,7 @@ export default function SignupPage() {
           <p className="text-zinc-500">
             Already have an account?{" "}
             <Link
-              href="/sign-in"
+              href="/signin"
               className="text-[#BB2327] font-medium hover:underline"
             >
               Sign in
