@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../app/generated/prisma"
 }
 
@@ -34,7 +34,7 @@ model seat {
   number       String
   auditorium   auditorium @relation(fields: [auditoriumId], references: [id])
   auditoriumId Int
-  seatType    String
+  seatType     String
   bookings     booking[]
 }
 
@@ -48,15 +48,15 @@ model show {
 }
 
 model user {
-  id           Int         @id @default(autoincrement())
-  email        String?     @unique
+  id           Int        @id @default(autoincrement())
+  email        String?    @unique
   firstName    String
   lastName     String
   passwordHash String?
-  createdAt    DateTime    @default(now())
+  createdAt    DateTime   @default(now())
   bookings     booking[]
   accounts     account[]
-  userRoles   userRole[]
+  userRoles    userRole[]
 }
 
 model account {
@@ -69,9 +69,10 @@ model account {
 }
 
 model role {
-  id         Int         @id @default(autoincrement())
-  name       String      @unique
-  createdAt  DateTime    @default(now())
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  isSystem  Boolean    @default(false)
+  createdAt DateTime   @default(now())
   userRoles userRole[]
 }
 
