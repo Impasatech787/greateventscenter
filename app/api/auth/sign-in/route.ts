@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     }
     const user = await prisma.user.findUnique({
       include: {
-        user_roles: {
+        userRoles: {
           include: { role: true },
         },
       },
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
           {
             userId: user.id,
             email: user.email,
-            roles: user.user_roles.map((r) => r.role.name),
+            roles: user.userRoles.map((r) => r.role.name),
           },
           process.env.JWT_SECRET!,
           { expiresIn: "1d" },
