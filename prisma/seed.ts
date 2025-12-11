@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { PrismaClient } from "../app/generated/prisma/client";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -50,11 +50,11 @@ async function main() {
     console.log("Admin user already exists.");
   }
 
-  var adminUserRole = await prisma.user_role.findFirst({
+  var adminUserRole = await prisma.userRole.findFirst({
     where: { userId: adminUser.id, roleId: adminRole.id }
   });
   if (!adminUserRole) {
-    adminUserRole = await prisma.user_role.create({
+    adminUserRole = await prisma.userRole.create({
       data: {
         userId: adminUser.id,
         roleId: adminRole.id
