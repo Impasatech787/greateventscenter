@@ -79,8 +79,7 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
     }
     
     if (blog.featuredMedia) {
-      const oldPath = path.join(process.cwd(), "public/uploads/blogs", blog.featuredMedia);
-      console.log("old path: ", oldPath)
+      const oldPath = path.join(process.cwd(), "public", blog.featuredMedia);
       if (fs.existsSync(oldPath)) {
         fs.unlinkSync(oldPath); // Delete the file
       }
