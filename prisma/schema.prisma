@@ -13,17 +13,25 @@ datasource db {
   provider = "postgresql"
 }
 
-model Blog {
-  id            Int      @id @default(autoincrement())
-  title         String
-  slug          String   @unique
-  author        String
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  REMOVED
+  ARCHIVED
+}
 
+model blog {
+  id     Int    @id @default(autoincrement())
+  title  String
+  slug   String @unique
+  author String
+
+  status        BlogStatus @default(DRAFT)
   publishedDate DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  content       String   @db.Text
+  content       String  @db.Text
   featuredMedia String?
 }
 

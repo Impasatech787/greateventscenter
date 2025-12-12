@@ -24,7 +24,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     const data = await prisma.cinema.create({
       data: {name}
     });
-    return NextResponse.json({ data, message: "Success!" }, { status: 200 });
+    return NextResponse.json({ data: data.id, message: "Success!" }, { status: 200 });
   } catch (ex) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

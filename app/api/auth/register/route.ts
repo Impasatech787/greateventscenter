@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/app/generated/prisma/client";
+import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
   try {
@@ -33,13 +34,15 @@ export async function POST(req: Request) {
       const user = await prisma.user.create({
         data: { email, firstName, lastName, passwordHash },
       });
-      const data = {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      };
-      return NextResponse.json({ data, message: "Success!" }, { status: 201 });
+      const token = jwt.sign(
+        {
+          userId: user.id,
+          email: user.email,
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: "1d" },
+      );
+      return NextResponse.json({ data: token, message: "Success!" }, { status: 201 });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
