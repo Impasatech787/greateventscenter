@@ -2,9 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = withAuth(async (req: NextRequest, params: any) => {
   try {
-    const id = Number("2");
+    const id = Number(params.id);
     const role = await prisma.role.findUnique({
         where: {id: id}
     });
@@ -23,7 +23,7 @@ export const GET = withAuth(async (req: NextRequest) => {
   }
 }, ["Admin"]);
 
-export const DELETE = withAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const DELETE = withAuth(async (req: NextRequest, params: any) => {
   try {
     const id = Number(params.id);
     const role = await prisma.role.findUnique({
@@ -35,7 +35,7 @@ export const DELETE = withAuth(async (req: NextRequest, { params }: { params: { 
     if(role.isSystem){
         return NextResponse.json({ error: "Cannot delete system role" }, { status: 400 });
     }
-    await prisma.user.delete({ where: { id } });
+    await prisma.role.delete({ where: { id } });
 
     return NextResponse.json({ data: id, message: "Success!" }, { status: 200 });
   } catch (ex) {
@@ -43,7 +43,7 @@ export const DELETE = withAuth(async (req: NextRequest, { params }: { params: { 
   }
 }, ["Admin"]);
 
-export const PATCH = withAuth(async (req: NextRequest, { params }: { params: { id: string } }) => {
+export const PATCH = withAuth(async (req: NextRequest, params: any) => {
   try {
     const id = Number(params.id);
     const role = await prisma.role.findUnique({
