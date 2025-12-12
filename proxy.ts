@@ -1,36 +1,42 @@
-import jwt from "jsonwebtoken";
-
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
+
 const ADMIN_PATH = "/back_office";
 const ADMIN_LOGIN = "/back_office/login";
+const COOKIE_NAME = "AuthToken";
 
-const adminVerify = (req: NextRequest) => {
-  const token = req.headers.get("Authorization")?.split(" ")[1];
-  console.log(token);
-  if (!token) {
-    const admin_login_Url = new URL(ADMIN_LOGIN, req.nextUrl.origin);
-    return NextResponse.redirect(admin_login_Url);
-  }
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    console.log(decoded);
-    return NextResponse.next();
-  } catch {
-    const homeUrl = new URL("/", req.nextUrl.origin);
-    return NextResponse.redirect(homeUrl);
-  }
+type AppJwtPayload = JwtPayload & {
+  roles?: string[];
 };
+
+function redirect(req: NextRequest, path: string) {
+  return NextResponse.redirect(new URL(path, req.nextUrl.origin));
+}
+function getAdminStatus(req: NextRequest): "Admin" | "NO_TOKEN" {
+  const token = req.cookies.get(COOKIE_NAME)?.value;
+  if (!token) return "NO_TOKEN";
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as AppJwtPayload;
+
+    return decoded.roles?.includes("Admin") ? "Admin" : "NO_TOKEN";
+  } catch {
+    return "NO_TOKEN";
+  }
+}
 
 export default function Proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const status = getAdminStatus(req);
 
-  // if (pathname === ADMIN_LOGIN) {
-  //   return NextResponse.next();
-  // }
-  //
-  // if (pathname.startsWith(ADMIN_PATH)) {
-  //   return adminVerify(req);
-  // }
+  if (pathname === ADMIN_LOGIN && status == "Admin") {
+    return redirect(req, ADMIN_PATH);
+  }
+
+  if (pathname.startsWith(ADMIN_PATH)) {
+    if (status === "Admin") return NextResponse.next();
+    return redirect(req, ADMIN_LOGIN);
+  }
 
   return NextResponse.next();
 }

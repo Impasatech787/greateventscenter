@@ -36,10 +36,20 @@ export async function POST(req: Request) {
           process.env.JWT_SECRET!,
           { expiresIn: "1d" },
         );
-        return NextResponse.json(
-          { data: token, message: "Success!" },
+        const response = NextResponse.json(
+          {
+            data: { token, roles: user.userRoles.map((r) => r.role.name) },
+            message: "Success!",
+          },
           { status: 200 },
         );
+        response.cookies.set("AuthToken", token, {
+          httpOnly: true,
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+        });
+        return response;
       }
     }
     return NextResponse.json(

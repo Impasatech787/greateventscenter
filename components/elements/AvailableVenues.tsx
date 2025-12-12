@@ -144,7 +144,7 @@ const VenueCard = ({ venue }: VenueCardProps) => {
             <span className="text-xs text-gray-500"> per 3hr</span>
           </div>
           <Button
-            size="md"
+            size="lg"
             className="bg-red-600 hover:bg-red-700 cursor-pointer text-white rounded-full px-6 py-3 shadow-md hover:shadow-lg transition-all"
           >
             Book Now

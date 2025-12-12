@@ -5,7 +5,7 @@ type OpenState = Record<number, string | null>;
 import React, { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
 import {
   LayoutDashboard,
@@ -37,6 +37,8 @@ import {
   Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { deleteSessionCookie } from "@/app/actions/clearCookies";
 
 interface SideBarMenu {
   title: string;
@@ -151,7 +153,7 @@ const menuItems: SideBarMenu[] = [
       {
         title: "Blogs",
         icon: <Newspaper className="w-4 h-4" />,
-        link: "/back_office/cms/gallery",
+        link: "/back_office/cms/blogs",
       },
     ],
   },
@@ -409,7 +411,6 @@ const MenuItem = ({
   setOpenState,
 }: MenuItemProps) => {
   const pathname = usePathname();
-  // const [isOpen, setIsOpen] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
   const isActive = item.link && pathname === item.link;
   const isOpen = openState[depth] == item.title;
@@ -508,6 +509,13 @@ const Sidebar = () => {
   const { isExpanded, toggleSidebar, setIsExpanded } = useSidebar();
   const sideBarRef = useRef<HTMLDivElement>(null);
   const [openState, setOpenState] = useState<OpenState>({});
+  const router = useRouter();
+
+  const logout = async () => {
+    localStorage.clear();
+    await deleteSessionCookie();
+    router.push("/signin");
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -631,10 +639,14 @@ const Sidebar = () => {
                 </p>
               </div>
             </div>
-            <button className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-gray-700 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+            <Button
+              onClick={logout}
+              variant="secondary"
+              className="w-full flex items-center justify-center gap-2 py-2 px-4 text-sm font-medium text-gray-700 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+            >
               <LogOut className="w-4 h-4" />
               <span>Logout</span>
-            </button>
+            </Button>
           </>
         ) : (
           <div className="flex items-center justify-center pt-2">

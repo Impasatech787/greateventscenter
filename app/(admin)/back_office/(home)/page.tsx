@@ -1,3 +1,5 @@
+import AdminDashboard from "./dashboard/page";
+
 export default function Home() {
-  return <div>Admin</div>;
+  return <AdminDashboard />;
 }

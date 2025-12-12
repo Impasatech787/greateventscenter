@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export interface LoginForm {
@@ -14,6 +15,7 @@ export const useLogin = () => {
     email: "",
     password: "",
   });
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<LoginError | null>(null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -45,7 +47,10 @@ export const useLogin = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    mode?: string,
+  ) => {
     e.preventDefault();
     setLoginError(null);
     setIsLoading(true);
@@ -65,6 +70,12 @@ export const useLogin = () => {
             "Login failed. Please try again.";
           setLoginError({ general: message });
         } else {
+          localStorage.setItem("authToken", data.data.token);
+          if (data.data.roles.includes("Admin")) {
+            router.push("/back_office/dashboard");
+          } else {
+            router.push("/");
+          }
           setLoginForm({ email: "", password: "" });
           setLoginError(null);
         }

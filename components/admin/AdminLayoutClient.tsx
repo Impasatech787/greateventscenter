@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import { SidebarProvider, useSidebar } from "@/components/admin/SidebarContext";
 import { cn } from "@/lib/utils";
+import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 
 function MainContent({ children }: { children: ReactNode }) {
   const { isExpanded } = useSidebar();
@@ -12,7 +13,7 @@ function MainContent({ children }: { children: ReactNode }) {
     <main
       className={cn(
         "flex-1 min-h-screen transition-all duration-300 ease-in-out",
-        isExpanded ? "ml-72" : "ml-16"
+        isExpanded ? "ml-72" : "ml-16",
       )}
     >
       <div className="p-6 lg:p-8">{children}</div>
@@ -25,6 +26,7 @@ export default function AdminLayoutClient({
 }: {
   children: ReactNode;
 }) {
+  ModuleRegistry.registerModules([AllCommunityModule]);
   return (
     <SidebarProvider>
       <div className="bg-gray-50 min-h-screen flex">

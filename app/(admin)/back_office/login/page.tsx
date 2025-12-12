@@ -39,7 +39,7 @@ export default function LoginPage() {
 
         <form
           className="flex flex-col gap-5"
-          onSubmit={handleSubmit}
+          onSubmit={(e) => handleSubmit(e, "admin")}
           method="post"
           noValidate
         >
