@@ -29,8 +29,9 @@ export default function Proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const status = getAdminStatus(req);
 
-  if (pathname === ADMIN_LOGIN && status == "Admin") {
-    return redirect(req, ADMIN_PATH);
+  if (pathname === ADMIN_LOGIN) {
+    if (status === "Admin") return redirect(req, ADMIN_PATH);
+    return NextResponse.next();
   }
 
   if (pathname.startsWith(ADMIN_PATH)) {
