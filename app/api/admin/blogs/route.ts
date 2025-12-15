@@ -47,6 +47,18 @@ export const POST = withAuth(async (req: NextRequest) => {
     const file = formData.get("file") as File | null;
     var featuredMedia: string | null = null;
     if (file){
+      const allowed = new Set([
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+      ]);
+      if (!allowed.has(file.type)) {
+        return NextResponse.json(
+          { error: "Invalid image type" },
+          { status: 400 },
+        );
+      }
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 

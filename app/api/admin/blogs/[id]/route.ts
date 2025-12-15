@@ -77,17 +77,22 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
     if(slugExists){
       return NextResponse.json({ error: "Similar title already exists!" }, { status: 400 });
     }
-    
-    if (blog.featuredMedia) {
-      const oldPath = path.join(process.cwd(), "public", blog.featuredMedia);
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath); // Delete the file
-      }
-    }
 
     const file = formData.get("file") as File | null;
     var featuredMedia: string | null = null;
     if (file){
+      const allowed = new Set([
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "image/gif",
+      ]);
+      if (!allowed.has(file.type)) {
+        return NextResponse.json(
+          { error: "Invalid image type" },
+          { status: 400 },
+        );
+      }
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
@@ -101,6 +106,13 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
       fs.writeFileSync(filePath, buffer);
 
       featuredMedia = `/uploads/blogs/${fileName}`;
+    }
+
+    if (blog.featuredMedia) {
+      const oldPath = path.join(process.cwd(), "public", blog.featuredMedia);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath); // Delete the file
+      }
     }
     
     await prisma.blog.update({
