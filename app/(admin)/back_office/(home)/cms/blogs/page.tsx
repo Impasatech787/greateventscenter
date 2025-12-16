@@ -1,39 +1,24 @@
 "use client";
 import { AgGridReact } from "ag-grid-react";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Edit, Trash2 } from "lucide-react";
+import { blog as Blog } from "@/app/generated/prisma";
+import { useApi } from "@/hooks/useApi";
+import Link from "next/link";
+import { ICellRendererParams } from "ag-grid-community";
 
 export default function BlogManagementPage() {
+  const { data, loading, error, call } = useApi<Blog[]>();
+  useEffect(() => {
+    const token = localStorage.getItem("authToken") || "";
+    call("/api/admin/blogs", {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+  }, []);
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = useMemo(
-    () => [
-      {
-        title: "The Future of AI",
-        slug: "future-of-ai",
-        author: "John Doe",
-        publishedAt: "2025-12-01",
-      },
-      {
-        title: "A Guide to Next.js",
-        slug: "guide-to-nextjs",
-        author: "Jane Smith",
-        publishedAt: "2025-11-25",
-      },
-      {
-        title: "Understanding Prisma",
-        slug: "understanding-prisma",
-        author: "Peter Jones",
-        publishedAt: "2025-11-20",
-      },
-      {
-        title: "Deploying with Vercel",
-        slug: "deploying-with-vercel",
-        author: "John Doe",
-        publishedAt: "2025-11-15",
-      },
-    ],
-    []
-  );
+  const rowData = data;
 
   const columnDefs = useMemo(
     () => [
@@ -57,7 +42,13 @@ export default function BlogManagementPage() {
       },
       {
         headerName: "Published Date",
-        field: "publishedAt",
+        field: "publishedDate",
+        flex: 1,
+        cellClass: "text-xs text-gray-400",
+      },
+      {
+        headerName: "Status",
+        field: "status",
         flex: 1,
         cellClass: "text-xs text-gray-400",
       },
@@ -65,14 +56,21 @@ export default function BlogManagementPage() {
         headerName: "Actions",
         field: "actions",
         flex: 1,
-        cellRenderer: () => (
-          <div className="flex gap-2">
-            <button className="p-1 rounded hover:bg-blue-100" title="Edit">
-              <Edit className="text-blue-400" size={18} />
-            </button>
-            <button className="p-1 rounded hover:bg-red-100" title="Delete">
-              <Trash2 className="text-red-400" size={18} />
-            </button>
+        cellRenderer: (params: ICellRendererParams<Blog>) => (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/back_office/cms/blogs/add-blog/${params.data?.id}`}
+              className="flex items-center"
+            >
+              <button className="p-1 rounded hover:bg-blue-100" title="Edit">
+                <Edit className="text-blue-400" size={18} />
+              </button>
+            </Link>
+            <div className="flex items-center">
+              <button className="p-1 rounded hover:bg-red-100" title="Delete">
+                <Trash2 className="text-red-400" size={18} />
+              </button>
+            </div>
           </div>
         ),
         sortable: false,
@@ -93,9 +91,12 @@ export default function BlogManagementPage() {
             Manage, search, and filter all your blogs in one place.
           </p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow">
+        <Link
+          href="/back_office/cms/blogs/add-blog"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow"
+        >
           + New Blog
-        </button>
+        </Link>
       </div>
       <div
         className=" rounded-xl border border-gray-200 shadow-sm bg-white"
@@ -109,6 +110,7 @@ export default function BlogManagementPage() {
           }}
           ref={gridRef}
           rowData={rowData}
+          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

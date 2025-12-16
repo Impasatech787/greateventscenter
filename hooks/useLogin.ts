@@ -1,3 +1,4 @@
+import { useRole } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -11,6 +12,7 @@ interface LoginError {
   general?: string;
 }
 export const useLogin = () => {
+  const { setRole } = useRole();
   const [loginForm, setLoginForm] = useState<LoginForm>({
     email: "",
     password: "",
@@ -47,10 +49,7 @@ export const useLogin = () => {
     }));
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-    mode?: string,
-  ) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError(null);
     setIsLoading(true);
@@ -71,6 +70,7 @@ export const useLogin = () => {
           setLoginError({ general: message });
         } else {
           localStorage.setItem("authToken", data.data.token);
+          setRole(data.data.roles);
           if (data.data.roles.includes("Admin")) {
             router.push("/back_office/dashboard");
           } else {

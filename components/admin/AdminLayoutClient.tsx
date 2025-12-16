@@ -1,10 +1,12 @@
 "use client";
-
 import { ReactNode } from "react";
 import Sidebar from "@/components/admin/Sidebar";
 import { SidebarProvider, useSidebar } from "@/components/admin/SidebarContext";
 import { cn } from "@/lib/utils";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
+import { useRole } from "@/app/context/AuthContext";
+import LoginPage from "@/app/(admin)/back_office/login/page";
+import LoadingPage from "../elements/LoadingPage";
 
 function MainContent({ children }: { children: ReactNode }) {
   const { isExpanded } = useSidebar();
@@ -27,12 +29,19 @@ export default function AdminLayoutClient({
   children: ReactNode;
 }) {
   ModuleRegistry.registerModules([AllCommunityModule]);
-  return (
-    <SidebarProvider>
-      <div className="bg-gray-50 min-h-screen flex">
-        <Sidebar />
-        <MainContent>{children}</MainContent>
-      </div>
-    </SidebarProvider>
-  );
+  const { role, loading } = useRole();
+  if (Array.isArray(role) && role.includes("Admin")) {
+    return (
+      <SidebarProvider>
+        <div className="bg-gray-50 min-h-screen flex">
+          <Sidebar />
+          <MainContent>{children}</MainContent>
+        </div>
+      </SidebarProvider>
+    );
+  }
+  if (loading) {
+    return <LoadingPage />;
+  }
+  return <LoginPage />;
 }

@@ -26,18 +26,18 @@ function getAdminStatus(req: NextRequest): "Admin" | "NO_TOKEN" {
 }
 
 export default function Proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  const status = getAdminStatus(req);
-
-  if (pathname === ADMIN_LOGIN) {
-    if (status === "Admin") return redirect(req, ADMIN_PATH);
-    return NextResponse.next();
-  }
-
-  if (pathname.startsWith(ADMIN_PATH)) {
-    if (status === "Admin") return NextResponse.next();
-    return redirect(req, ADMIN_LOGIN);
-  }
+  // const { pathname } = req.nextUrl;
+  // const status = getAdminStatus(req);
+  //
+  // if (pathname === ADMIN_LOGIN) {
+  //   if (status === "Admin") return redirect(req, ADMIN_PATH);
+  //   return NextResponse.next();
+  // }
+  //
+  // if (pathname.startsWith(ADMIN_PATH)) {
+  //   if (status === "Admin") return NextResponse.next();
+  //   return redirect(req, ADMIN_LOGIN);
+  // }
 
   return NextResponse.next();
 }
