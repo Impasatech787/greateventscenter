@@ -4,22 +4,53 @@ import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
-import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import AddEventVenueModal from "@/components/admin/AddEventVenueModal";
+import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 
 export default function EventHallPage() {
-  const { data, loading, error, call } = useApi<EventVenue[]>();
+  const { data, loading, call } = useApi<EventVenue[]>();
   const [isAddVenueOpen, setIsAddVenueOpen] = useState<boolean>(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
-  useEffect(() => {
+  const [selectedVenueName, setSelectedVenueName] = useState<string>("");
+
+  const fetchVenues = async () => {
     const token = localStorage.getItem("authToken") || "";
-    call("/api/admin/cinemas", {
+    await call("/api/admin/cinemas", {
       headers: {
         authorization: `Bearer ${token}`,
       },
     });
+  };
+
+  useEffect(() => {
+    fetchVenues();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleDeleteVenue = async () => {
+    if (!selectedVenueId) return;
+
+    const token = localStorage.getItem("authToken") || "";
+    const response = await fetch(`/api/admin/cinemas/${selectedVenueId}`, {
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to delete venue");
+    }
+
+    setIsDeleteOpen(false);
+    setSelectedVenueId(null);
+    setSelectedVenueName("");
+    await fetchVenues();
+  };
+
   const gridRef = useRef<AgGridReact>(null);
   const rowData = data;
   const columnDefs = useMemo(
@@ -44,7 +75,7 @@ export default function EventHallPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                setSelectedVenueId(params.value.id);
+                setSelectedVenueId(params.data?.id ?? null);
                 setIsAddVenueOpen(true);
               }}
               className="p-1 rounded hover:bg-blue-100"
@@ -52,7 +83,15 @@ export default function EventHallPage() {
             >
               <Edit className="text-blue-400" size={18} />
             </button>
-            <button className="p-1 rounded hover:bg-red-100" title="Delete">
+            <button
+              onClick={() => {
+                setSelectedVenueId(params.data?.id ?? null);
+                setSelectedVenueName(params.data?.name ?? "");
+                setIsDeleteOpen(true);
+              }}
+              className="p-1 rounded hover:bg-red-100"
+              title="Delete"
+            >
               <Trash2 className="text-red-400" size={18} />
             </button>
           </div>
@@ -61,7 +100,7 @@ export default function EventHallPage() {
         filter: false,
       },
     ],
-    [],
+    []
   );
 
   return (
@@ -76,7 +115,10 @@ export default function EventHallPage() {
           </p>
         </div>
         <button
-          onClick={() => setIsAddVenueOpen(true)}
+          onClick={() => {
+            setSelectedVenueId(null);
+            setIsAddVenueOpen(true);
+          }}
           className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded shadow"
         >
           + New Venue
@@ -103,12 +145,33 @@ export default function EventHallPage() {
           paginationPageSize={10}
         />
       </div>
+
+      {/* Add/Edit Venue Modal */}
       {isAddVenueOpen && (
         <AddEventVenueModal
-          onClose={() => setIsAddVenueOpen(false)}
+          onClose={() => {
+            setIsAddVenueOpen(false);
+            setSelectedVenueId(null);
+          }}
           venueId={selectedVenueId ?? undefined}
+          onAdd={fetchVenues}
         />
       )}
+
+      {/* Delete Venue Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteOpen}
+        onClose={() => {
+          setIsDeleteOpen(false);
+          setSelectedVenueId(null);
+          setSelectedVenueName("");
+        }}
+        onConfirm={handleDeleteVenue}
+        title="Delete Venue"
+        itemName={selectedVenueName}
+        itemType="Venue"
+        description="This will permanently delete the venue and all associated data."
+      />
     </div>
   );
 }
