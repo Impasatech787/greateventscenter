@@ -1,17 +1,20 @@
 "use client";
-import { AgGridReact } from "ag-grid-react";
-import { useEffect, useMemo, useRef } from "react";
-import { Edit, Trash2 } from "lucide-react";
-import { blog as Blog } from "@/app/generated/prisma";
+import { cinema as EventVenue } from "@/app/generated/prisma";
 import { useApi } from "@/hooks/useApi";
-import Link from "next/link";
+import { useEffect, useRef, useMemo, useState } from "react";
+import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
+import Link from "next/link";
+import { Edit, Trash2 } from "lucide-react";
+import AddEventVenueModal from "@/components/admin/AddEventVenueModal";
 
-export default function BlogManagementPage() {
-  const { data, loading, error, call } = useApi<Blog[]>();
+export default function EventHallPage() {
+  const { data, loading, error, call } = useApi<EventVenue[]>();
+  const [isAddVenueOpen, setIsAddVenueOpen] = useState<boolean>(false);
+  const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
   useEffect(() => {
     const token = localStorage.getItem("authToken") || "";
-    call("/api/admin/blogs", {
+    call("/api/admin/cinemas", {
       headers: {
         authorization: `Bearer ${token}`,
       },
@@ -19,58 +22,39 @@ export default function BlogManagementPage() {
   }, []);
   const gridRef = useRef<AgGridReact>(null);
   const rowData = data;
-
   const columnDefs = useMemo(
     () => [
       {
-        headerName: "Title",
-        field: "title",
+        headerName: "Name",
+        field: "name",
         flex: 2,
         cellClass: "font-semibold text-black",
       },
       {
-        headerName: "Slug",
-        field: "slug",
+        headerName: "Location",
+        field: "location",
         flex: 2,
-        cellClass: "text-xs text-gray-500",
-      },
-      {
-        headerName: "Author",
-        field: "author",
-        flex: 1,
-        cellClass: "text-gray-800",
-      },
-      {
-        headerName: "Published Date",
-        field: "publishedDate",
-        flex: 1,
-        cellClass: "text-xs text-gray-400",
-      },
-      {
-        headerName: "Status",
-        field: "status",
-        flex: 1,
-        cellClass: "text-xs text-gray-400",
+        cellClass: "font-semibold text-black",
       },
       {
         headerName: "Actions",
         field: "actions",
         flex: 1,
-        cellRenderer: (params: ICellRendererParams<Blog>) => (
+        cellRenderer: (params: ICellRendererParams<EventVenue>) => (
           <div className="flex items-center gap-2">
-            <Link
-              href={`/back_office/cms/blogs/add-blog/${params.data?.id}`}
-              className="flex items-center"
+            <button
+              onClick={() => {
+                setSelectedVenueId(params.value.id);
+                setIsAddVenueOpen(true);
+              }}
+              className="p-1 rounded hover:bg-blue-100"
+              title="Edit"
             >
-              <button className="p-1 rounded hover:bg-blue-100" title="Edit">
-                <Edit className="text-blue-400" size={18} />
-              </button>
-            </Link>
-            <div className="flex items-center">
-              <button className="p-1 rounded hover:bg-red-100" title="Delete">
-                <Trash2 className="text-red-400" size={18} />
-              </button>
-            </div>
+              <Edit className="text-blue-400" size={18} />
+            </button>
+            <button className="p-1 rounded hover:bg-red-100" title="Delete">
+              <Trash2 className="text-red-400" size={18} />
+            </button>
           </div>
         ),
         sortable: false,
@@ -85,18 +69,18 @@ export default function BlogManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">
-            Blog Management
+            Event Venue Management
           </h1>
           <p className="text-gray-500 text-sm">
-            Manage, search, and filter all your blogs in one place.
+            Manage, search, and filter all your Event Venues in one place.
           </p>
         </div>
-        <Link
-          href="/back_office/cms/blogs/add-blog"
+        <button
+          onClick={() => setIsAddVenueOpen(true)}
           className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded shadow"
         >
-          + New Blog
-        </Link>
+          + New Venue
+        </button>
       </div>
       <div
         className=" rounded-xl border border-gray-200 shadow-sm bg-white"
@@ -119,6 +103,12 @@ export default function BlogManagementPage() {
           paginationPageSize={10}
         />
       </div>
+      {isAddVenueOpen && (
+        <AddEventVenueModal
+          onClose={() => setIsAddVenueOpen(false)}
+          venueId={selectedVenueId ?? undefined}
+        />
+      )}
     </div>
   );
 }

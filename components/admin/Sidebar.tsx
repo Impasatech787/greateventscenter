@@ -58,45 +58,24 @@ const menuItems: SideBarMenu[] = [
     icon: <Building2 className="w-5 h-5" />,
     children: [
       {
-        title: "Movie Hall",
-        icon: <Film className="w-4 h-4" />,
-        children: [
-          {
-            title: "Movies",
-            icon: <Clapperboard className="w-4 h-4" />,
-            link: "/back_office/movies",
-          },
-          {
-            title: "Showtimes",
-            icon: <Calendar className="w-4 h-4" />,
-            link: "/back_office/showtimes",
-          },
-          {
-            title: "Seat Layout Designer",
-            icon: <Armchair className="w-4 h-4" />,
-            link: "/back_office/seat-layout",
-          },
-        ],
-      },
-      {
         title: "Event Venues",
         icon: <MapPin className="w-4 h-4" />,
-        link: "/back_office/venues",
+        link: "/back_office/event-venue",
       },
       {
-        title: "Wedding Halls",
-        icon: <Heart className="w-4 h-4" />,
-        link: "/back_office/wedding-halls",
+        title: "Movie Hall",
+        icon: <Film className="w-4 h-4" />,
+        link: "/back_office/movie-halls",
       },
       {
-        title: "Corporate Halls",
-        icon: <Building2 className="w-4 h-4" />,
-        link: "/back_office/corporate-halls",
+        title: "Seating  Chart",
+        icon: <Armchair className="w-4 h-4" />,
+        link: "/back_office/seating-charts",
       },
       {
-        title: "Concert & Shows",
-        icon: <Music className="w-4 h-4" />,
-        link: "/back_office/concerts",
+        title: "Movies",
+        icon: <Clapperboard className="w-4 h-4" />,
+        link: "/back_office/movies",
       },
     ],
   },
