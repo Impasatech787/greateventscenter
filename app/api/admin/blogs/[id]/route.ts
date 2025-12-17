@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/withAuth";
 import { slugify } from "@/lib/slug";
 import fs from "fs";
 import path from "path";
+import { BlogStatus } from "@/app/generated/prisma";
 
 export const GET = withAuth(async (req: NextRequest, params: any) => {
   try {
@@ -63,6 +64,7 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
     const author = formData.get("author") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const status = formData.get("status") as BlogStatus;
 
     const slug = slugify(title);
     const slugExists = await prisma.blog.findFirst({
@@ -117,7 +119,7 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
     
     await prisma.blog.update({
       where: { id },
-      data: { title, slug, author, content, featuredMedia }
+      data: { title, slug, author, content, status, featuredMedia }
     });
     
     return NextResponse.json({ data: id, message: "Success!" }, { status: 200 });
