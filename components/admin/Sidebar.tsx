@@ -63,9 +63,9 @@ const menuItems: SideBarMenu[] = [
         link: "/back_office/event-venue",
       },
       {
-        title: "Movie Hall",
+        title: "Auditoriums",
         icon: <Film className="w-4 h-4" />,
-        link: "/back_office/movie-halls",
+        link: "/back_office/auditorium",
       },
       {
         title: "Seating  Chart",

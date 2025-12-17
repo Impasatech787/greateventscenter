@@ -41,10 +41,10 @@ export const DeleteConfirmationModal: React.FC<
       setTimeout(() => {
         onClose();
         setSuccessMessage("");
-      }, 1500);
+      }, 300);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : `Failed to delete ${itemType}`
+        err instanceof Error ? err.message : `Failed to delete ${itemType}`,
       );
     } finally {
       setLoading(false);
