@@ -35,6 +35,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     const author = formData.get("author") as string;
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
+    const status = formData.get("status") as BlogStatus;
 
     const slug = slugify(title);
     const slugExists = await prisma.blog.findUnique({
@@ -75,7 +76,7 @@ export const POST = withAuth(async (req: NextRequest) => {
     }
 
     const data = await prisma.blog.create({
-      data: { title, slug, author, content, featuredMedia, status: BlogStatus.DRAFT }
+      data: { title, slug, author, content, featuredMedia, status }
     });
     return NextResponse.json({ data: data.id, message: "Success!" }, { status: 200 });
   } catch (ex) {
