@@ -1,23 +1,23 @@
 "use client";
-import { cinema as EventVenue } from "@/app/generated/prisma";
+import { movie as Movie } from "@/app/generated/prisma";
 import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
 import { Edit, Trash2 } from "lucide-react";
-import AddEventVenueModal from "@/components/admin/AddEventVenueModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import AddMovieModal from "@/components/admin/AddMovie";
 
-export default function EventHallPage() {
-  const { data, loading, call } = useApi<EventVenue[]>();
-  const [isAddVenueOpen, setIsAddVenueOpen] = useState<boolean>(false);
+export default function MoviesPage() {
+  const { data, loading, call } = useApi<Movie[]>();
+  const [isAddMovieOpen, setIsAddMovieOpen] = useState<boolean>(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
-  const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
-  const [selectedVenueName, setSelectedVenueName] = useState<string>("");
+  const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
+  const [selectedMovieName, setSelectedMovieName] = useState<string>("");
 
-  const fetchVenues = async () => {
+  const fetchMovies = async () => {
     const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/cinemas", {
+    await call("/api/admin/movies", {
       headers: {
         authorization: `Bearer ${token}`,
       },
@@ -25,15 +25,15 @@ export default function EventHallPage() {
   };
 
   useEffect(() => {
-    fetchVenues();
+    fetchMovies();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDeleteVenue = async () => {
-    if (!selectedVenueId) return;
+  const handleDeleteMovie = async () => {
+    if (!selectedMovieId) return;
 
     const token = localStorage.getItem("authToken") || "";
-    const response = await fetch(`/api/admin/cinemas/${selectedVenueId}`, {
+    const response = await fetch(`/api/admin/movies/${selectedMovieId}`, {
       method: "DELETE",
       headers: {
         authorization: `Bearer ${token}`,
@@ -46,9 +46,9 @@ export default function EventHallPage() {
     }
 
     setIsDeleteOpen(false);
-    setSelectedVenueId(null);
-    setSelectedVenueName("");
-    await fetchVenues();
+    setSelectedMovieId(null);
+    setSelectedMovieName("");
+    await fetchMovies();
   };
 
   const gridRef = useRef<AgGridReact>(null);
@@ -56,27 +56,52 @@ export default function EventHallPage() {
   const columnDefs = useMemo(
     () => [
       {
-        headerName: "Name",
-        field: "name",
+        headerName: "Title",
+        field: "title",
+        flex: 2,
+        cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
+        floatingFilter: true,
+      },
+      {
+        headerName: "Language",
+        field: "language",
+        flex: 2,
+        cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
+        floatingFilter: true,
+      },
+      {
+        headerName: "Duration (Min)",
+        field: "durationMin",
         flex: 2,
         cellClass: "font-semibold text-black",
       },
       {
-        headerName: "Location",
-        field: "location",
+        headerName: "Release Date",
+        field: "releaseDate",
         flex: 2,
         cellClass: "font-semibold text-black",
+        filter: "agDateColumnFilter",
+        floatingFilter: true,
+      },
+      {
+        headerName: "Genre",
+        field: "genres",
+        flex: 2,
+        cellClass: "font-semibold text-black",
+        filter: true,
       },
       {
         headerName: "Actions",
         field: "actions",
         flex: 1,
-        cellRenderer: (params: ICellRendererParams<EventVenue>) => (
+        cellRenderer: (params: ICellRendererParams<Movie>) => (
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                setSelectedVenueId(params.data?.id ?? null);
-                setIsAddVenueOpen(true);
+                setSelectedMovieId(params.data?.id ?? null);
+                setIsAddMovieOpen(true);
               }}
               className="p-1 rounded hover:bg-blue-100"
               title="Edit"
@@ -85,8 +110,8 @@ export default function EventHallPage() {
             </button>
             <button
               onClick={() => {
-                setSelectedVenueId(params.data?.id ?? null);
-                setSelectedVenueName(params.data?.name ?? "");
+                setSelectedMovieId(params.data?.id ?? null);
+                setSelectedMovieName(params.data?.title ?? "");
                 setIsDeleteOpen(true);
               }}
               className="p-1 rounded hover:bg-red-100"
@@ -100,7 +125,7 @@ export default function EventHallPage() {
         filter: false,
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -108,20 +133,20 @@ export default function EventHallPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">
-            Event Venue Management
+            Movie Management
           </h1>
           <p className="text-gray-500 text-sm">
-            Manage, search, and filter all your Event Venues in one place.
+            Manage, search, and filter all your Movies in one place.
           </p>
         </div>
         <button
           onClick={() => {
-            setSelectedVenueId(null);
-            setIsAddVenueOpen(true);
+            setSelectedMovieId(null);
+            setIsAddMovieOpen(true);
           }}
           className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded shadow"
         >
-          + New Venue
+          + New Movie
         </button>
       </div>
       <div
@@ -147,14 +172,14 @@ export default function EventHallPage() {
       </div>
 
       {/* Add/Edit Venue Modal */}
-      {isAddVenueOpen && (
-        <AddEventVenueModal
+      {isAddMovieOpen && (
+        <AddMovieModal
           onClose={() => {
-            setIsAddVenueOpen(false);
-            setSelectedVenueId(null);
+            setIsAddMovieOpen(false);
+            setSelectedMovieId(null);
           }}
-          venueId={selectedVenueId ?? undefined}
-          onAdd={fetchVenues}
+          movieId={selectedMovieId ?? undefined}
+          onAdd={fetchMovies}
         />
       )}
 
@@ -163,14 +188,14 @@ export default function EventHallPage() {
         isOpen={isDeleteOpen}
         onClose={() => {
           setIsDeleteOpen(false);
-          setSelectedVenueId(null);
-          setSelectedVenueName("");
+          setSelectedMovieId(null);
+          setSelectedMovieName("");
         }}
-        onConfirm={handleDeleteVenue}
-        title="Delete Venue"
-        itemName={selectedVenueName}
-        itemType="Venue"
-        description="This will permanently delete the venue and all associated data."
+        onConfirm={handleDeleteMovie}
+        title="Delete Movie"
+        itemName={selectedMovieName}
+        itemType="Movie"
+        description="This will permanently delete the Movie and all associated data."
       />
     </div>
   );
