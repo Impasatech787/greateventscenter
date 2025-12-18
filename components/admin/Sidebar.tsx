@@ -70,7 +70,7 @@ const menuItems: SideBarMenu[] = [
       {
         title: "Seating  Chart",
         icon: <Armchair className="w-4 h-4" />,
-        link: "/back_office/seating-charts",
+        link: "/back_office/seating-chart",
       },
       {
         title: "Movies",
