@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
+import { slugify } from "@/lib/slug";
 
 export const GET = withAuth(async (req: NextRequest, params: any) => {
   try {
@@ -13,6 +14,7 @@ export const GET = withAuth(async (req: NextRequest, params: any) => {
 
     const data = {
       id: movie.id,
+      slug: movie.slug,
       title: movie.title,
       description: movie.description,
       durationMin: movie.durationMin,
@@ -21,6 +23,8 @@ export const GET = withAuth(async (req: NextRequest, params: any) => {
       posterUrl: movie.posterUrl,
       trailerUrl: movie.trailerUrl,
       genres: movie.genres,
+      casts: movie.casts,
+      rating: movie.rating,
       createdAt: movie.createdAt,
       updatedAt: movie.updatedAt,
     };
@@ -57,8 +61,24 @@ export const PATCH = withAuth(async (req: NextRequest, params: any) => {
         return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
     const body = await req.json();
-    const { title, description, durationMin, language, releaseDate, trailerUrl, genres } = body;
-    await prisma.movie.update({ where: { id }, data: { title, description, durationMin, language, releaseDate, trailerUrl, genres }});
+    const { title, description, durationMin, language, releaseDate, trailerUrl, genres, casts, rating } = body;
+
+    const slug = slugify(title);
+    const slugExists = await prisma.movie.findFirst({
+      where: {
+        id: {
+          not: id
+        },
+        slug
+      }
+    });
+    if(slugExists){
+      return NextResponse.json({ error: "Similar title already exists!" }, { status: 400 });
+    }
+
+    await prisma.movie.update({
+      where: { id },
+      data: { slug, title, description, durationMin, language, releaseDate, trailerUrl, genres, casts, rating }});
     
     return NextResponse.json({ data: id, message: "Success!" }, { status: 200 });
   } catch (ex) {
