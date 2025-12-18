@@ -4,9 +4,10 @@ import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, SofaIcon, Trash2 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import AddAudiModal from "@/components/admin/AddAuditoriumModal";
+import SeatingModal from "@/components/admin/SeatingModal";
 
 export default function AuditoriumPage() {
   const { data, loading, call } = useApi<Auditorium[]>();
@@ -14,6 +15,7 @@ export default function AuditoriumPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedAudiId, setSelectedAudiId] = useState<number | null>(null);
   const [selectedAudiName, setSelectedAudiName] = useState<string>("");
+  const [isSeatingOpen, setIsSeatingOpen] = useState<boolean>(false);
 
   const fetchAuditoriums = async () => {
     const token = localStorage.getItem("authToken") || "";
@@ -78,7 +80,16 @@ export default function AuditoriumPage() {
             <button
               onClick={() => {
                 setSelectedAudiId(params.data?.id ?? null);
-                setIsAddAudiOpen(true);
+                setIsSeatingOpen(true);
+              }}
+              className="p-1 rounded hover:bg-blue-100"
+              title="Edit"
+            >
+              <SofaIcon className="text-blue-400" size={18} />
+            </button>
+            <button
+              onClick={() => {
+                setSelectedAudiId(params.data?.id ?? null);
               }}
               className="p-1 rounded hover:bg-blue-100"
               title="Edit"
@@ -147,6 +158,16 @@ export default function AuditoriumPage() {
           paginationPageSize={10}
         />
       </div>
+      {/* Add/Edit Venue Modal */}
+      {isSeatingOpen && (
+        <SeatingModal
+          onClose={() => {
+            setIsAddAudiOpen(false);
+            setSelectedAudiId(null);
+          }}
+          audiId={selectedAudiId ?? undefined}
+        />
+      )}
 
       {/* Add/Edit Venue Modal */}
       {isAddAudiOpen && (
