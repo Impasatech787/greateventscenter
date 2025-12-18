@@ -83,6 +83,7 @@ model seat {
 model movie {
   id          Int      @id @default(autoincrement())
   title       String
+  slug        String?  @unique
   description String
   durationMin Int
   language    String
