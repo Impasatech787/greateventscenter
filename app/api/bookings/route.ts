@@ -4,16 +4,44 @@ import { withAuth } from "@/lib/withAuth";
 import { BookingStatus } from "@/app/generated/prisma";
 import { AuthUser } from "@/lib/auth";
 
-export const GET = withAuth(async (req: NextRequest, user: AuthUser) => {
+export const GET = withAuth(async (req: NextRequest, params: any, user: AuthUser) => {
   try {
-    const shows = await prisma.show.findMany({
+    const bookings = await prisma.booking.findMany({
+        where: {
+            userId: Number(user.id)
+        },
+        include: {
+            show: {
+                select: {                    
+                    movie: {
+                        select: {
+                            title: true,
+                            posterUrl: true
+                        }
+                    },
+                    startAt: true
+                }
+            },
+            bookingSeats: {
+                select: {
+                    seat: {
+                        select: {
+                            row: true,
+                            number: true
+                        }
+                    }
+                }
+            }
+        }
     });
 
-    const data = shows.map(u => ({
+    const data = bookings.map(u => ({
       id: u.id,
-      movieId: u.movieId,
-      startAt: u.startAt,
-      auditoriumId: u.auditoriumId,
+      movieTitle : u.show?.movie?.title,
+      moviePosterUrl : u.show?.movie?.posterUrl,
+      startAt: u.show.startAt,    
+      reservedAt: u.reservedAt,
+      seats: u.bookingSeats.map(s => ({ seatNo: s.seat?.row??"" + s.seat?.number })).join(','),
     }));
     return NextResponse.json({ data, message: "Success!" }, { status: 200 });
   } catch (ex) {
@@ -21,7 +49,7 @@ export const GET = withAuth(async (req: NextRequest, user: AuthUser) => {
   }
 });
 
-export const POST = withAuth(async (req: NextRequest, user: AuthUser) => {
+export const POST = withAuth(async (req: NextRequest, params: any, user: AuthUser) => {
   try {
     const body = await req.json();
     const { showId, seats } = body;
