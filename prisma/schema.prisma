@@ -100,13 +100,14 @@ model movie {
 }
 
 model show {
-  id           Int        @id @default(autoincrement())
+  id           Int         @id @default(autoincrement())
   movieId      Int?
-  movie        movie?     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movie        movie?      @relation(fields: [movieId], references: [id], onDelete: Cascade)
   startAt      DateTime
-  auditorium   auditorium @relation(fields: [auditoriumId], references: [id])
+  auditorium   auditorium  @relation(fields: [auditoriumId], references: [id])
   auditoriumId Int
   bookings     booking[]
+  seatPrices   seatPrice[]
 }
 
 model user {
@@ -192,4 +193,12 @@ model banner {
   description String
   buttonText  String
   link        String
+}
+
+model seatPrice {
+  id         Int      @id @default(autoincrement())
+  showId     Int
+  show       show     @relation(fields: [showId], references: [id])
+  seatType   SeatType
+  priceCents Int
 }
