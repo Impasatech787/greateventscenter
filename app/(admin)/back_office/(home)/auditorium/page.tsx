@@ -113,7 +113,7 @@ export default function AuditoriumPage() {
         filter: false,
       },
     ],
-    [],
+    []
   );
 
   return (
@@ -162,7 +162,7 @@ export default function AuditoriumPage() {
       {isSeatingOpen && (
         <SeatingModal
           onClose={() => {
-            setIsAddAudiOpen(false);
+            setIsSeatingOpen(false);
             setSelectedAudiId(null);
           }}
           audiId={selectedAudiId ?? undefined}
