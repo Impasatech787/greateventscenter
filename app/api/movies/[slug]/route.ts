@@ -1,28 +1,26 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/withAuth";
 
-export const GET = withAuth(async (req: NextRequest, params: any) => {
+export const GET = async (req: NextRequest, ctx: any) => {
   try {
-    const slug = params.slug as string;
+    const params = await ctx.params;
+    const slug = params.slug;
     const now = new Date();
     const movie = await prisma.movie.findUnique({
       where: {
         slug,
-        shows: {
-            some: {
-                startAt: {
-                    gte: now
-                }
-            }
-        }
       },
       include: {
         shows: {
-            select: {
-                id: true,
-                startAt: true
+          where: {
+            startAt: {
+              gte: now
             }
+          },
+          select: {
+              id: true,
+              startAt: true
+          }
         }
       }   
     });
@@ -50,4 +48,4 @@ export const GET = withAuth(async (req: NextRequest, params: any) => {
   } catch (ex) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-});
+};

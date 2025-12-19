@@ -1,13 +1,28 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
-
+//
+// <<<<<<< HEAD
+// export const GET = withAuth(
+//   async (req: NextRequest) => {
+//     try {
+//       const seats = await prisma.seat.findMany({
+//         include: {
+//           auditorium: true,
+//         },
+//       });
+// =======
 export const GET = withAuth(
-  async (req: NextRequest) => {
+  async (req: NextRequest, params: any) => {
     try {
+      const { searchParams } = new URL(req.url);
+      const auditoriumId = Number(searchParams.get("auditoriumId"));
       const seats = await prisma.seat.findMany({
         include: {
           auditorium: true,
+        },
+        where: {
+          ...(auditoriumId && { auditoriumId }),
         },
       });
 
@@ -48,4 +63,3 @@ export const POST = withAuth(
   },
   ["Admin"],
 );
-
