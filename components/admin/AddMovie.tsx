@@ -17,6 +17,9 @@ interface MovieFormError {
   releaseDate?: string;
   trailerUrl?: string;
   genres?: string;
+  casts?: string;
+  director?: string;
+  rating?: string;
 }
 interface Movie {
   title: string;
@@ -26,6 +29,9 @@ interface Movie {
   releaseDate: string;
   trailerUrl: string;
   genres: string;
+  casts: string;
+  director: string;
+  rating: string;
 }
 const AddMovieModal: React.FC<AddMovieProps> = ({
   onClose,
@@ -40,6 +46,9 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
     releaseDate: "",
     trailerUrl: "",
     genres: "",
+    casts: "",
+    director: "",
+    rating: "",
   });
   const [formError, setFormError] = useState<MovieFormError | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
@@ -72,6 +81,10 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
     if (!movieValue.genres.trim()) errors.genres = "Movie Genre is Required";
     if (!movieValue.language.trim())
       errors.language = "Movie Language is Required";
+    if (!movieValue.director.trim())
+      errors.director = "Movie Director is Required";
+    if (!movieValue.casts.trim()) errors.casts = "Movie Casts is Required";
+    if (!movieValue.rating.trim()) errors.rating = "Movie Ratings is Required";
 
     setFormError(errors);
     return Object.keys(errors).length === 0;
@@ -113,6 +126,9 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
               language: "",
               trailerUrl: "",
               durationMin: "",
+              director: "",
+              casts: "",
+              rating: "",
             });
             onClose();
             onAdd();
@@ -130,7 +146,7 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
     <div className="fixed inset-0 z-50 bg-black/80 p-2 sm:p-4">
       <div className="flex h-full w-full items-end sm:items-center justify-center">
         <div
-          className="bg-white shadow-xl w-full sm:max-w-2xl 
+          className="bg-white shadow-xl w-full sm:max-w-4xl 
                     h-[92vh] sm:h-auto sm:max-h-[90vh]
                     overflow-y-auto
                     rounded-t-2xl sm:rounded-lg"
@@ -201,81 +217,148 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
                 </div>
               )}
             </div>
-            <div className="mb-4 space-y-2">
+            <div className="flex gap-4 justify-between">
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Language
+                </label>
+                <Input
+                  type="text"
+                  name="language"
+                  onChange={handleInputChange}
+                  placeholder="Enter Movie language"
+                  value={movieValue.language}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.language && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.language}
+                  </div>
+                )}
+              </div>
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Genre
+                </label>
+                <Input
+                  type="text"
+                  name="genres"
+                  onChange={handleInputChange}
+                  placeholder="Enter Movie genre"
+                  value={movieValue.genres}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.genres && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.genres}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-4 justify-between">
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Relsease Date
+                </label>
+                <Input
+                  type="date"
+                  name="releaseDate"
+                  onChange={handleInputChange}
+                  placeholder="Enter Movie Duration in Minute"
+                  value={movieValue.releaseDate}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.releaseDate && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.releaseDate}
+                  </div>
+                )}
+              </div>
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Duration
+                </label>
+                <Input
+                  type="number"
+                  name="durationMin"
+                  onChange={handleInputChange}
+                  placeholder="Enter Movie Duration in Minute"
+                  value={movieValue.durationMin}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.durationMin && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.durationMin}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-4 space-y-2 w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Movie Language
+                Movie Casts
               </label>
               <Input
                 type="text"
-                name="language"
+                name="casts"
                 onChange={handleInputChange}
-                placeholder="Enter Movie language"
-                value={movieValue.language}
+                placeholder="e.g. John David, Mira Smith"
+                value={movieValue.casts}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               />
-              {formError?.language && (
+              {formError?.casts && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {formError.language}
+                  {formError.casts}
                 </div>
               )}
             </div>
-            <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Movie Genre
-              </label>
-              <Input
-                type="text"
-                name="genres"
-                onChange={handleInputChange}
-                placeholder="Enter Movie genre"
-                value={movieValue.genres}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={loading}
-              />
-              {formError?.genres && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {formError.genres}
-                </div>
-              )}
-            </div>
-            <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Movie Relsease Date
-              </label>
-              <Input
-                type="date"
-                name="releaseDate"
-                onChange={handleInputChange}
-                placeholder="Enter Movie Duration in Minute"
-                value={movieValue.releaseDate}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={loading}
-              />
-              {formError?.releaseDate && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {formError.releaseDate}
-                </div>
-              )}
-            </div>
-            <div className="mb-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Movie Duration
-              </label>
-              <Input
-                type="number"
-                name="durationMin"
-                onChange={handleInputChange}
-                placeholder="Enter Movie Duration in Minute"
-                value={movieValue.durationMin}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                disabled={loading}
-              />
-              {formError?.durationMin && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                  {formError.durationMin}
-                </div>
-              )}
+            <div className="flex gap-4 justify-between">
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Director
+                </label>
+                <Input
+                  type="text"
+                  name="director"
+                  onChange={handleInputChange}
+                  placeholder="e.g. James Cameeron"
+                  value={movieValue.director}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.director && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.director}
+                  </div>
+                )}
+              </div>
+              <div className="mb-4 space-y-2 w-full">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Movie Rating
+                </label>
+                <Input
+                  type="number"
+                  name="rating"
+                  max={5}
+                  min={1}
+                  onChange={handleInputChange}
+                  placeholder="Enter Movie Rating from 1-5"
+                  value={movieValue.rating}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                />
+                {formError?.rating && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                    {formError.rating}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="mb-4 space-y-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
