@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth } from "@/lib/withAuth";
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -9,14 +8,14 @@ export const GET = async (req: NextRequest) => {
     const startOfToday = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate()
+      now.getDate(),
     );
 
     // End of tomorrow
     const endOfTomorrow = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate() + 2
+      now.getDate() + 2,
     );
     const movies = await prisma.movie.findMany({
       where: {
@@ -24,17 +23,17 @@ export const GET = async (req: NextRequest) => {
           some: {
             startAt: {
               gte: startOfToday,
-              lt: endOfTomorrow
-            }
-          }
-        }
+              lt: endOfTomorrow,
+            },
+          },
+        },
       },
       orderBy: {
-        releaseDate: "desc"
-      }
+        releaseDate: "desc",
+      },
     });
 
-    const data = movies.map(u => ({
+    const data = movies.map((u) => ({
       id: u.id,
       slug: u.slug,
       title: u.title,
@@ -48,3 +47,4 @@ export const GET = async (req: NextRequest) => {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 };
+

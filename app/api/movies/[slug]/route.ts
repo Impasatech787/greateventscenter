@@ -14,18 +14,18 @@ export const GET = async (req: NextRequest, ctx: any) => {
         shows: {
           where: {
             startAt: {
-              gte: now
-            }
+              gte: now,
+            },
           },
           select: {
-              id: true,
-              startAt: true
-          }
-        }
-      }   
+            id: true,
+            startAt: true,
+          },
+        },
+      },
     });
-    if(!movie) {
-        return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!movie) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const data = {
       id: movie.id,
@@ -38,14 +38,16 @@ export const GET = async (req: NextRequest, ctx: any) => {
       trailerUrl: movie.trailerUrl,
       genres: movie.genres,
       casts: movie.casts,
+      director: movie.director,
       rating: movie.rating,
-      shows: movie.shows.map(s => ({
+      shows: movie.shows.map((s) => ({
         id: s.id,
-        startAt: s.startAt
-      }))
+        startAt: s.startAt,
+      })),
     };
     return NextResponse.json({ data, message: "Success!" }, { status: 200 });
   } catch (ex) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 };
+

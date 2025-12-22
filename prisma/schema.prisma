@@ -92,6 +92,7 @@ model movie {
   trailerUrl  String?
   casts       String?
   rating      String?
+  director    String?
   genres      String
   shows       show[]
   createdAt   DateTime @default(now())
