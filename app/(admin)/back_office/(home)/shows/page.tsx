@@ -131,7 +131,7 @@ export default function ShowsPage() {
         <AddShow
           onClose={() => setIsShowModalOpen(false)}
           showId={selectedShowId ?? undefined}
-          onAdd={() => null}
+          onAdd={() => fetchShows()}
         />
       )}
     </div>

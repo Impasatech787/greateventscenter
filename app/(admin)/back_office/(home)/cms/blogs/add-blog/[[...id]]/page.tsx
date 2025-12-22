@@ -299,7 +299,6 @@ export default function AddBlogPage() {
                     "strike",
                     "blockquote",
                     "list",
-                    "bullet",
                     "indent",
                     "link",
                     "image",
@@ -330,8 +329,8 @@ export default function AddBlogPage() {
                       preview
                         ? preview
                         : typeof formData.featuredMedia === "string"
-                        ? formData.featuredMedia
-                        : ""
+                          ? formData.featuredMedia
+                          : ""
                     }
                     alt="Preview"
                     fill
