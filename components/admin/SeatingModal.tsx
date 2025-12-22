@@ -378,11 +378,13 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
                           onClick={() => selectSeat(seat)}
                           style={{
                             marginTop: `${
-                              (seat.seat?.columnOffset || 0) * SeatSize + 4
+                              (seat.seat?.columnOffset || 0) * SeatSize
                             }px`,
                             marginLeft: `${
-                              (seat.seat?.rowOffset || 0) * SeatSize +
-                              (row.seats.indexOf(seat) === 0 ? 0 : 4)
+                              seat.seat?.rowOffset
+                                ? seat.seat.rowOffset * SeatSize +
+                                  (row.seats.indexOf(seat) === 0 ? 0 : 4)
+                                : 0 || 0
                             }px`,
                           }}
                           className={cn(

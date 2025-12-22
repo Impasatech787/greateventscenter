@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { ro } from "date-fns/locale";
 
 interface AddSeatModalProps {
   onClose: () => void;
@@ -204,26 +203,29 @@ const AddSeatModal: React.FC<AddSeatModalProps> = ({
             <div className="text-red-500 text-sm">{errors.numberOfSeat}</div>
           )}
         </div>
-        <div className="space-y-1">
-          <label className="font-medium text-sm">
-            Number of Row{" "}
-            <span className="ml-1 text-xs text-gray-600">
-              (Copy Same Layout to Number of Rows)
-            </span>
-          </label>
-          <Input
-            type="number"
-            min={1}
-            step={1}
-            value={newSeatForm.numberOfRow}
-            onChange={(e) =>
-              handleSeatInputChange("numberOfRow", e.target.value)
-            }
-          />
-          {errors.numberOfRow && (
-            <div className="text-red-500 text-sm">{errors.numberOfRow}</div>
-          )}
-        </div>
+
+        {rowLabel == "" && (
+          <div className="space-y-1">
+            <label className="font-medium text-sm">
+              Number of Row{" "}
+              <span className="ml-1 text-xs text-gray-600">
+                (Copy Same Layout to Number of Rows)
+              </span>
+            </label>
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              value={newSeatForm.numberOfRow}
+              onChange={(e) =>
+                handleSeatInputChange("numberOfRow", e.target.value)
+              }
+            />
+            {errors.numberOfRow && (
+              <div className="text-red-500 text-sm">{errors.numberOfRow}</div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-1">
           <label className="font-medium text-sm">Seat Type</label>
