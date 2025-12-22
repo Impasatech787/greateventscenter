@@ -23,7 +23,7 @@ export const POST = withAuth(
       if (!auditorium) {
         return NextResponse.json(
           { error: "Auditorium not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -36,7 +36,7 @@ export const POST = withAuth(
             row: row,
             number: i.toString(),
             seatType: seatType,
-            columnOffset: columnOffset,
+            columnOffset: row == fromRow ? columnOffset : 0,
             rowOffset: i == fromNumber ? rowOffset : 0,
           });
         }
@@ -50,7 +50,7 @@ export const POST = withAuth(
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
   },
-  ["Admin"]
+  ["Admin"],
 );
 
 function parseRowRange(fromRow: string, toRow: string): string[] {
