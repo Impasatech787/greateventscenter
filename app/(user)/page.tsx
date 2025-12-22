@@ -12,7 +12,7 @@ export default function Home() {
       <HomeBanner />
       <Stats />
       <OurServices />
-      <MovieLists />
+      {/* <MovieLists /> */}
       <div className="container flex flex-col gap-4 pt-12 pb-2 px-4 lg:px-0">
         <h2 className="text-3xl font-bold mb-0">Explore Our Spaces.</h2>
         <p className="text-gray-800">

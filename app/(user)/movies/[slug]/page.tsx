@@ -1,4 +1,3 @@
-import { MOVIES } from "@/app/data/movies";
 import { notFound } from "next/navigation";
 import {
   CalendarDays,
@@ -13,15 +12,90 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import ShowtimeCalendarPicker from "@/components/elements/ShowtimeCalendarPicker";
+import ShowtimeCalendarPicker, {
+  Showtime,
+} from "@/components/elements/ShowtimeCalendarPicker";
+import { movie as Movie, show as Show } from "@/app/generated/prisma";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+async function fetchMovie(slug: string) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/movies/${slug}`,
+  );
+  if (!res.ok) {
+    throw new Error("Failed To get the movies");
+  }
+  const data = await res.json();
+  return data.data;
+}
 
 export default async function MovieDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const movie = MOVIES.find((item) => item.slug === slug);
+  const movie: Movie & { shows: Show[] } = await fetchMovie(slug);
+  console.log(movie);
+
+  const formatShowTimes = () => {
+    const showsByDate: { [key: string]: Show[] } = {};
+    movie.shows.forEach((show) => {
+      const showDate = new Date(show.startAt);
+      const dateKey = showDate.toDateString();
+      if (!showsByDate[dateKey]) {
+        showsByDate[dateKey] = [];
+      }
+      showsByDate[dateKey].push(show);
+    });
+
+    const formattedShowtimes: Showtime[] = Object.keys(showsByDate).map(
+      (dateKey) => {
+        const shows = showsByDate[dateKey];
+        const showDate = new Date(shows[0].startAt);
+
+        const labelOptions: Intl.DateTimeFormatOptions = {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+        };
+
+        let label = showDate.toLocaleDateString("en-US", { weekday: "short" });
+        if (showDate.toDateString() === new Date().toDateString()) {
+          label = "Today";
+        } else {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          if (showDate.toDateString() === tomorrow.toDateString()) {
+            label = "Tomorrow";
+          }
+        }
+
+        const date = showDate.toLocaleDateString("en-US", labelOptions);
+
+        const times = shows.map((show) => {
+          const showTime = new Date(show.startAt);
+          return {
+            id: show.id,
+            time: showTime.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+            }),
+          };
+        });
+        console.log(times);
+
+        return {
+          label,
+          date,
+          format: "IMAX with Laser · Reserved Seating",
+          premiumTag: "Most popular",
+          theater: "Great Events Cinemas · Downtown",
+          times,
+        };
+      },
+    );
+
+    return formattedShowtimes;
+  };
 
   if (!movie) {
     notFound();
@@ -32,7 +106,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
       {/* Hero Section - Static */}
       <section className="relative min-h-[100svh] sm:min-h-[85vh] lg:min-h-[80vh] overflow-hidden">
         <Image
-          src={movie.heroImage || movie.image}
+          src={movie.posterUrl || ""}
           alt={movie.title}
           fill
           priority
@@ -51,12 +125,13 @@ export default async function MovieDetailPage({ params }: PageProps) {
               {/* Status badges */}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
                 <span className="inline-flex items-center bg-[#BB2327] text-white text-[10px] sm:text-xs font-bold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md uppercase tracking-widest shadow-lg shadow-red-900/30">
-                  {movie.status === "NOW SHOWING"
-                    ? "Now Showing"
-                    : "Coming Soon"}
+                  Now Showing
+                  {/* {movie.status === "NOW SHOWING" */}
+                  {/*   ? "Now Showing" */}
+                  {/*   : "Coming Soon"} */}
                 </span>
                 <span className="text-xs sm:text-sm uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/70 border-l border-white/20 pl-2.5 sm:pl-3">
-                  {movie.genre}
+                  {movie.genres}
                 </span>
               </div>
 
@@ -67,18 +142,18 @@ export default async function MovieDetailPage({ params }: PageProps) {
 
               {/* Tagline */}
               <p className="text-sm sm:text-base lg:text-lg text-white/80 max-w-xl lg:max-w-2xl mt-3 sm:mt-4 leading-relaxed">
-                {movie.tagline}
+                {/* {movie.tagline} */}
               </p>
 
               {/* Meta info pills */}
               <div className="flex flex-wrap items-center gap-2 mt-4 sm:mt-5 text-xs sm:text-sm text-white/90">
                 <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <Clock3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-                  {movie.duration}
+                  {movie.durationMin} MIN
                 </span>
                 <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-                  {movie.releaseDate}
+                  {/* {new Date(movie.releaseDate).toISOString()} */}
                 </span>
                 <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <Clapperboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
@@ -98,7 +173,10 @@ export default async function MovieDetailPage({ params }: PageProps) {
                transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl 
                flex items-center justify-center"
                 >
-                  <Link href="#showtimes" className="flex items-center justify-center w-full h-full">
+                  <Link
+                    href="#showtimes"
+                    className="flex items-center justify-center w-full h-full"
+                  >
                     <Ticket className="w-5 h-5 mr-2.5" />
                     Book Tickets
                   </Link>
@@ -119,17 +197,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 </Button>
               </div>
 
-
               {/* Highlights tags */}
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-5 sm:mt-6">
-                {movie.highlights.map((highlight) => (
-                  <span
-                    key={highlight}
-                    className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] sm:text-xs text-white/70 font-medium"
-                  >
-                    {highlight}
-                  </span>
-                ))}
+                {/* {movie.highlights.map((highlight) => ( */}
+                {/*   <span */}
+                {/*     key={highlight} */}
+                {/*     className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] sm:text-xs text-white/70 font-medium" */}
+                {/*   > */}
+                {/*     {highlight} */}
+                {/*   </span> */}
+                {/* ))} */}
               </div>
             </div>
 
@@ -139,7 +216,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 {/* Main poster card */}
                 <div className="relative aspect-[2/3] rounded-xl lg:rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-black/60 ring-1 ring-white/5">
                   <Image
-                    src={movie.posterImage || movie.image}
+                    src={movie.posterUrl || ""}
                     alt={`${movie.title} poster`}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -193,7 +270,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           <div className="mt-8">
             <ShowtimeCalendarPicker
               movieTitle={movie.title}
-              showtimes={movie.showtimes}
+              showtimes={formatShowTimes()}
             />
           </div>
         </div>
@@ -205,16 +282,16 @@ export default async function MovieDetailPage({ params }: PageProps) {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
             <h3 className="text-xl font-semibold mb-3">About the film</h3>
             <p className="text-slate-100/90 leading-relaxed">
-              {movie.synopsis}
+              {movie.description}
             </p>
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-200/80">
               <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10">
                 <Sparkles className="w-4 h-4" />
-                {movie.genre}
+                {movie.genres}
               </span>
               <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10">
                 <Popcorn className="w-4 h-4" />
-                {movie.rating} · {movie.duration}
+                {movie.rating} · {movie.durationMin} Min
               </span>
             </div>
           </div>
@@ -224,20 +301,21 @@ export default async function MovieDetailPage({ params }: PageProps) {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
             <h3 className="text-xl font-semibold mb-3">Cast & crew</h3>
             <div className="grid grid-cols-1 gap-3">
-              {movie.cast.map((person) => (
-                <div
-                  key={`${person.name}-${person.role}`}
-                  className="flex items-center justify-between border-b border-white/5 pb-3 last:border-none last:pb-0"
-                >
-                  <div>
-                    <p className="font-semibold">{person.name}</p>
-                    <p className="text-sm text-slate-200/80">{person.role}</p>
-                  </div>
-                  <div className="text-xs text-emerald-200 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30">
-                    {movie.title.slice(0, 1).toUpperCase()}
-                  </div>
-                </div>
-              ))}
+              {movie.casts}
+              {/* {movie.cast.map((person) => ( */}
+              {/*   <div */}
+              {/*     key={`${person.name}-${person.role}`} */}
+              {/*     className="flex items-center justify-between border-b border-white/5 pb-3 last:border-none last:pb-0" */}
+              {/*   > */}
+              {/*     <div> */}
+              {/*       <p className="font-semibold">{person.name}</p> */}
+              {/*       <p className="text-sm text-slate-200/80">{person.role}</p> */}
+              {/*     </div> */}
+              {/*     <div className="text-xs text-emerald-200 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/30"> */}
+              {/*       {movie.title.slice(0, 1).toUpperCase()} */}
+              {/*     </div> */}
+              {/*   </div> */}
+              {/* ))} */}
             </div>
           </div>
         </div>
@@ -246,6 +324,6 @@ export default async function MovieDetailPage({ params }: PageProps) {
   );
 }
 
-export async function generateStaticParams() {
-  return MOVIES.map((movie) => ({ slug: movie.slug }));
-}
+// export async function generateStaticParams() {
+//   return MOVIES.map((movie) => ({ slug: movie.slug }));
+// }
