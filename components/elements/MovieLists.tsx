@@ -1,11 +1,12 @@
 "use client";
 
-import { MOVIES, MovieStatus } from "@/app/data/movies";
+import { MovieStatus } from "@/app/data/movies";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { Button } from "../ui/button";
+import { Movie } from "@/app/(user)/movies/page";
 
 const StatusBadge = ({ status }: { status: MovieStatus }) => {
   const isNowShowing = status === "NOW SHOWING";
@@ -25,20 +26,20 @@ const StatusBadge = ({ status }: { status: MovieStatus }) => {
   );
 };
 
-const MovieCard = ({ movie }: { movie: (typeof MOVIES)[number] }) => {
+const MovieCard = ({ movie }: { movie: Movie }) => {
   return (
     <div className="flex-shrink-0 w-[220px] group cursor-pointer">
       {/* Movie Poster */}
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-3 bg-gray-200">
         {/*Show blank image if movie.image is missing */}
-        {!movie.image && (
+        {!movie.posterUrl && (
           <div className="w-full h-full flex items-center justify-center bg-gray-300">
             <span className="text-gray-500">No Image Available</span>
           </div>
         )}
-        {movie.image && (
+        {movie.posterUrl && (
           <Image
-            src={movie.image}
+            src={movie.posterUrl}
             alt={movie.title}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -50,14 +51,17 @@ const MovieCard = ({ movie }: { movie: (typeof MOVIES)[number] }) => {
             asChild
             className="bg-red-600 px-5 py-2 rounded-full text-sm font-medium hover:bg-red-700/90 transition-colors transform scale-90 group-hover:scale-100 duration-300"
           >
-            <Link href={`/movies/${movie.slug}`} aria-label={`Book tickets for ${movie.title}`}>
+            <Link
+              href={`/movies/${movie.slug}`}
+              aria-label={`Book tickets for ${movie.title}`}
+            >
               Book Now
             </Link>
           </Button>
         </div>
         {/* Status Badge */}
         <div className="absolute top-3 left-3 z-10">
-          <StatusBadge status={movie.status} />
+          <StatusBadge status="NOW SHOWING" />
         </div>
       </div>
 
@@ -67,16 +71,19 @@ const MovieCard = ({ movie }: { movie: (typeof MOVIES)[number] }) => {
           {movie.title}
         </h3>
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>{movie.duration}</span>
+          <span>{movie.durationMin} Min</span>
           <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-          <span>{movie.genre}</span>
+          <span>{movie.genres}</span>
         </div>
       </div>
     </div>
   );
 };
+interface MovieListProp {
+  movies: Movie[];
+}
 
-const MovieLists = () => {
+const MovieLists: React.FC<MovieListProp> = ({ movies }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   //One click should move the next movie card width plus gap not just a fixed 240px
   const scrollRight = () => {
@@ -130,7 +137,7 @@ const MovieLists = () => {
               msOverflowStyle: "none",
             }}
           >
-            {MOVIES.map((movie) => (
+            {movies.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>

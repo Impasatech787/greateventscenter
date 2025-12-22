@@ -29,13 +29,18 @@ interface Row {
   seats: Seat[];
 }
 
-interface Showtime {
+export interface Showtime {
+  ids?: number[];
   label: string;
   date: string;
   format: string;
   theater: string;
   premiumTag?: string;
-  times: string[];
+  times: TimeId[];
+}
+interface TimeId {
+  time: string;
+  id: number;
 }
 
 interface Props {
@@ -122,7 +127,7 @@ export default function ShowtimeCalendarPicker({
 
   const [selectedShowtimeData, setSelectedShowtimeData] =
     useState<ParsedShowtime | null>(quickSelectShowtimes[0] || null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [selectedShow, setSelectedShow] = useState<TimeId | null>(null);
   const seatSelectionRef = useRef<HTMLDivElement>(null);
 
   const summary = useMemo(
@@ -135,7 +140,7 @@ export default function ShowtimeCalendarPicker({
 
   // Scroll to seat selection when a time is selected
   useEffect(() => {
-    if (selectedTime && seatSelectionRef.current) {
+    if (selectedShow && seatSelectionRef.current) {
       setTimeout(() => {
         seatSelectionRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -143,11 +148,11 @@ export default function ShowtimeCalendarPicker({
         });
       }, 100);
     }
-  }, [selectedTime]);
+  }, [selectedShow]);
 
   const handleDateSelect = (showtime: ParsedShowtime) => {
     setSelectedShowtimeData(showtime);
-    setSelectedTime(null); // Reset time selection
+    setSelectedShow(null); // Reset time selection
   };
 
   const handleCalendarSelect = (date: Date | undefined) => {
@@ -160,17 +165,29 @@ export default function ShowtimeCalendarPicker({
 
     if (matching) {
       setSelectedShowtimeData(matching);
-      setSelectedTime(null);
+      setSelectedShow(null);
     }
   };
 
-  const handleTimeSelect = (time: string) => {
-    setSelectedTime(time);
+  const handleTimeSelect = (time: TimeId) => {
+    setSelectedShow(time);
+    fetchShow(time.id);
   };
 
   // Check if a date is available (has showtimes)
   const isDateAvailable = (date: Date): boolean => {
     return availableDates.some((d) => d.toDateString() === date.toDateString());
+  };
+
+  const fetchShow = async (showId: number) => {
+    console.log("Fetching show for ID:", showId);
+    try {
+      const res = await fetch(`/api/movies/show/${showId}`);
+      const data = await res.json();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -181,10 +198,11 @@ export default function ShowtimeCalendarPicker({
           <button
             key={`${slot.label}-${slot.date}`}
             onClick={() => handleDateSelect(slot)}
-            className={`min-w-[150px] rounded-2xl border p-4 backdrop-blur shadow-lg transition-all text-left ${selectedShowtimeData?.date === slot.date
-              ? "border-rose-500/60 bg-rose-500/20 shadow-rose-500/20"
-              : "border-white/10 bg-white/5 shadow-red-500/15 hover:border-white/20 hover:bg-white/10"
-              }`}
+            className={`min-w-[150px] rounded-2xl border p-4 backdrop-blur shadow-lg transition-all text-left ${
+              selectedShowtimeData?.date === slot.date
+                ? "border-rose-500/60 bg-rose-500/20 shadow-rose-500/20"
+                : "border-white/10 bg-white/5 shadow-red-500/15 hover:border-white/20 hover:bg-white/10"
+            }`}
           >
             <div className="flex items-center justify-between text-xs uppercase tracking-wide text-rose-100">
               <span>{slot.label}</span>
@@ -203,7 +221,7 @@ export default function ShowtimeCalendarPicker({
                 <span className="text-emerald-200/80">{slot.weekday}</span>
               </div>
             </div>
-            <p className="mt-3 text-xs text-slate-200/80">{slot.format}</p>
+            {/* <p className="mt-3 text-xs text-slate-200/80">{slot.format}</p> */}
           </button>
         ))}
       </div>
@@ -241,7 +259,6 @@ export default function ShowtimeCalendarPicker({
                 selected={selectedShowtimeData?.dateObj}
                 onSelect={handleCalendarSelect}
                 disabled={(date) => !isDateAvailable(date)}
-                initialFocus
                 className="bg-slate-900 text-white"
               />
             </PopoverContent>
@@ -257,20 +274,20 @@ export default function ShowtimeCalendarPicker({
             <div className="flex flex-wrap gap-2">
               {selectedShowtimeData.times.map((time) => (
                 <Button
-                  key={`${selectedShowtimeData.date}-${time}`}
+                  key={`${selectedShowtimeData.date}-${time.id}`}
                   variant="outline"
                   className={`cursor-pointer border-red-400/50 text-white bg-white/5
     hover:bg-red-600 hover:text-white 
     hover:border-red-500 transition-all
-    ${selectedTime === time
-                      ? "bg-rose-500/30 border-rose-400 ring-1 ring-rose-400/50"
-                      : ""
-                    }`}
+    ${
+      selectedShow === time
+        ? "bg-rose-500/30 border-rose-400 ring-1 ring-rose-400/50"
+        : ""
+    }`}
                   onClick={() => handleTimeSelect(time)}
                 >
-                  {time}
+                  {time.time}
                 </Button>
-
               ))}
             </div>
           </div>
@@ -278,7 +295,7 @@ export default function ShowtimeCalendarPicker({
       </div>
 
       {/* Seat Selection Accordion */}
-      {selectedTime && selectedShowtimeData && (
+      {selectedShow && selectedShowtimeData && (
         <div ref={seatSelectionRef} className="mt-6">
           <SeatSelectionAccordion
             data={{
@@ -293,7 +310,7 @@ export default function ShowtimeCalendarPicker({
                 tickets: hallLayoutData.showinfo.tickets,
               },
             }}
-            selectedTime={selectedTime}
+            selectedTime={selectedShow?.time}
             selectedDate={selectedShowtimeData.date}
             maxSeats={10}
           />
