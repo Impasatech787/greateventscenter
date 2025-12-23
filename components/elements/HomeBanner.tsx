@@ -54,13 +54,15 @@ const HomeBanner = () => {
               sizes. Check real-time availability and book instantly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Button className="bg-[#BB2327] text-white hover:bg-[#a01d21] rounded-full px-12 py-8 font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 text-center">
+              <Button className="bg-[#BB2327] text-white hover:bg-[#a01d21] border border-secondary rounded-full text-base py-6 px-8 font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 text-center box-border">
                 Book Now
               </Button>
-              <Button className="bg-white text-[#BB2327] hover:bg-zinc-50 border-2 border-[#BB2327] rounded-full px-12 py-8 font-bold transition-all duration-300 shadow-sm  hover:shadow-md hover:-translate-y-1 text-center">
+              <Button className="bg-white text-[#BB2327] hover:bg-zinc-50 border border-[#BB2327] rounded-full text-base py-6 px-8 font-bold transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1 text-center box-border">
                 Inquiry Now
               </Button>
             </div>
+
+
           </div>
 
           {/* Right: Polaroid Stack */}
