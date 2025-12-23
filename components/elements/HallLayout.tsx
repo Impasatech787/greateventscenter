@@ -16,18 +16,28 @@ import {
   Armchair,
   Accessibility,
 } from "lucide-react";
+import { seat as Seat, SeatType } from "@/app/generated/prisma";
 
-// Types based on the JSON structure
-interface Seat {
-  index: number;
-  is_active: boolean;
-  seat_type: string;
-  seat_label: string;
-  ticket_type: string;
-  seat_id: number;
-  section_label: string;
-  seat_status: "Normal" | "Available" | "Sold" | "Selected" | "Blocked";
+interface SeatRow {
+  row: string;
+  seats: SeatCell[];
 }
+export interface SeatCell {
+  // kind: "seat" | "empty";
+  key: string; // stable key for HTML rendering
+  seat?: Seat;
+}
+// Types based on the JSON structure
+// interface Seat {
+//   index: number;
+//   is_active: boolean;
+//   seat_type: string;
+//   seat_label: string;
+//   ticket_type: string;
+//   seat_id: number;
+//   section_label: string;
+//   seat_status: "Normal" | "Available" | "Sold" | "Selected" | "Blocked";
+// }
 
 interface Row {
   row: string;
@@ -41,8 +51,6 @@ interface TicketType {
   available: number;
   price_level: string;
   ticket_type_id: string;
-  bonus: number;
-  khalti_points: number;
 }
 
 interface ShowInfo {
@@ -56,10 +64,16 @@ interface ShowInfo {
   tickets: TicketType[];
 }
 
+// interface HallLayoutData {
+//   session_id: number;
+//   new_seats: Row[];
+//   screen_reverse: boolean;
+//   showinfo: ShowInfo;
+// }
 interface HallLayoutData {
-  session_id: number;
-  new_seats: Row[];
-  screen_reverse: boolean;
+  showId: number;
+  seats: (Seat & { bookStatus: string })[];
+  // screen_reverse: boolean;
   showinfo: ShowInfo;
 }
 
@@ -79,16 +93,22 @@ const seatStatusColors = {
     text: "text-emerald-100",
     cursor: "cursor-pointer",
   },
-  Available: {
+  AVAILABLE: {
     bg: "bg-emerald-500/20 hover:bg-emerald-500/40 border-emerald-500/50",
     text: "text-emerald-100",
     cursor: "cursor-pointer",
   },
-  Sold: {
+  HELD: {
     bg: "bg-zinc-800/50 border-zinc-700/50",
     text: "text-zinc-600",
     cursor: "cursor-not-allowed",
   },
+  BOOKED: {
+    bg: "bg-zinc-800/50 border-zinc-700/50",
+    text: "text-zinc-600",
+    cursor: "cursor-not-allowed",
+  },
+
   Selected: {
     bg: "bg-rose-500 hover:bg-rose-400 border-rose-400",
     text: "text-white font-semibold",
@@ -114,16 +134,34 @@ const HallLayout = ({
   const [hoveredSeat, setHoveredSeat] = useState<Seat | null>(null);
 
   // Process rows - reverse if needed
-  const rows = useMemo(() => {
-    const processedRows = [...data.new_seats];
-    return data.screen_reverse ? processedRows : processedRows.reverse();
-  }, [data.new_seats, data.screen_reverse]);
+  const rows: SeatRow[] = useMemo(() => {
+    const byRow = new Map<string, Seat[]>();
+    for (const s of data.seats) {
+      if (!byRow.has(s.row)) byRow.set(s.row, []);
+      byRow.get(s.row)!.push(s);
+    }
+    const rowLabels = [...byRow.keys()].sort((a, b) => a.localeCompare(b));
+    return rowLabels.map((rowLabel) => {
+      const rowSeats = byRow.get(rowLabel)!;
+
+      rowSeats.sort((a, b) => Number(a.number) - Number(b.number));
+
+      const cells: SeatCell[] = [];
+      for (const s of rowSeats) {
+        cells.push({ key: `seat-${s.number}`, seat: s });
+      }
+      return { row: rowLabel, seats: cells };
+    });
+
+    // const processedRows = [...data.seats];
+    // return processedRows;
+  }, [data.seats]);
 
   // Calculate totals
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((sum, seat) => {
       const ticket = data.showinfo.tickets.find(
-        (t) => t.price_level === seat.ticket_type
+        (t) => t.price_level === seat.seatType
       );
       return sum + (ticket?.price || 0);
     }, 0);
@@ -135,44 +173,50 @@ const HallLayout = ({
   };
 
   // Handle seat click
-  const handleSeatClick = (seat: Seat) => {
-    if (
-      seat.seat_status === "Sold" ||
-      seat.seat_status === "Blocked" ||
-      !seat.is_active
-    ) {
-      return;
-    }
+  // const handleSeatClick = (seat: Seat ) => {
+  //   if (
+  //     seat.booking_status === "Sold" ||
+  //     seat.seat_status === "Blocked" ||
+  //     !seat.is_active
+  //   ) {
+  //     return;
+  //   }
 
-    setSelectedSeats((prev) => {
-      const isSelected = prev.some((s) => s.seat_id === seat.seat_id);
-      let newSelection: Seat[];
+  //   setSelectedSeats((prev) => {
+  //     const isSelected = prev.some((s) => s.seat_id === seat.seat_id);
+  //     let newSelection: Seat[];
 
-      if (isSelected) {
-        newSelection = prev.filter((s) => s.seat_id !== seat.seat_id);
-      } else {
-        if (prev.length >= maxSeats) {
-          return prev; // Max seats reached
-        }
-        newSelection = [...prev, { ...seat, seat_status: "Selected" }];
-      }
+  //     if (isSelected) {
+  //       newSelection = prev.filter((s) => s.seat_id !== seat.seat_id);
+  //     } else {
+  //       if (prev.length >= maxSeats) {
+  //         return prev; // Max seats reached
+  //       }
+  //       newSelection = [...prev, { ...seat, seat_status: "Selected" }];
+  //     }
 
-      onSelectionChange?.(newSelection);
-      return newSelection;
-    });
-  };
+  //     onSelectionChange?.(newSelection);
+  //     return newSelection;
+  //   });
+  // };
 
   // Check if seat is selected
   const isSeatSelected = (seatId: number) => {
-    return selectedSeats.some((s) => s.seat_id === seatId);
+    return selectedSeats.some((s) => s.id === seatId);
   };
 
   // Get seat status for rendering
   const getSeatStatus = (
-    seat: Seat
+    seat: Seat & { bookStatus: string }
   ): "Normal" | "Available" | "Sold" | "Selected" | "Blocked" => {
-    if (isSeatSelected(seat.seat_id)) return "Selected";
-    return seat.seat_status;
+    console.log(seat);
+    if (isSeatSelected(seat.id)) return "Selected";
+    return seat.bookStatus as
+      | "Normal"
+      | "Available"
+      | "Sold"
+      | "Selected"
+      | "Blocked";
   };
 
   return (
@@ -302,46 +346,59 @@ const HallLayout = ({
             {rows.map((row) => (
               <div key={row.row} className="flex items-center gap-0.5 sm:gap-1">
                 {/* Row Label - Left */}
-                <div className="w-5 sm:w-6 h-6 flex items-center justify-center text-[10px] sm:text-xs font-medium text-rose-300/50">
+                <div
+                  className="w-5 sm:w-6 h-6 flex items-center justify-center text-[10px] sm:text-xs font-medium text-rose-300/50"
+                  style={{
+                    marginTop: `${
+                      (row.seats[0]?.seat?.columnOffset || 0) * 24
+                    }px`,
+                  }}
+                >
                   {row.row}
                 </div>
 
                 {/* Seats */}
                 <div className="flex gap-0.5 sm:gap-1">
                   {row.seats.map((seat) => {
-                    const status = getSeatStatus(seat);
+                    const status = seat.seat
+                      ? getSeatStatus(
+                          seat.seat as Seat & { bookStatus: string }
+                        )
+                      : "Normal";
                     const statusStyle = seatStatusColors[status];
-                    const isGap = !seat.is_active && seat.section_label === "";
+                    // const isGap = seat.seat && !seat.seat.is_active && seat.seat.section_label === "";
 
-                    if (isGap) {
-                      return (
-                        <div
-                          key={`${row.row}-${seat.index}-gap`}
-                          className="w-6 h-6 sm:w-7 sm:h-7"
-                        />
-                      );
-                    }
+                    // if (isGap) {
+                    //   return (
+                    //     <div
+                    //       key={`${row.row}-${seat.seat?.index ?? "gap"}-gap`}
+                    //       className="w-6 h-6 sm:w-7 sm:h-7"
+                    //     />
+                    //   );
+                    // }
 
-                    if (!seat.is_active) {
-                      return (
-                        <div
-                          key={`${row.row}-${seat.index}-inactive`}
-                          className="w-6 h-6 sm:w-7 sm:h-7"
-                        />
-                      );
-                    }
+                    // if (!seat.is_active) {
+                    //   return (
+                    //     <div
+                    //       key={`${row.row}-${seat.index}-inactive`}
+                    //       className="w-6 h-6 sm:w-7 sm:h-7"
+                    //     />
+                    //   );
+                    // }
 
-                    const isAccessible = seat.seat_type === "PhysicallyAbled";
+                    const isAccessible =
+                      seat.seat?.seatType ===
+                      SeatType.REGULAR_WHEELCHAIR_ACCESSIBLE;
 
                     return (
                       <button
-                        key={seat.seat_id}
-                        onClick={() => handleSeatClick(seat)}
-                        onMouseEnter={() => setHoveredSeat(seat)}
+                        key={seat.seat ? seat.seat.id : seat.key}
+                        // onClick={() => handleSeatClick(seat)}
+                        onMouseEnter={() => setHoveredSeat(seat.seat!)}
                         onMouseLeave={() => setHoveredSeat(null)}
                         disabled={status === "Sold" || status === "Blocked"}
                         className={cn(
-                          "w-6 h-6 sm:w-7 sm:h-7 border text-[9px] sm:text-[10px] transition-all duration-150",
+                          "w-6 h-6  border text-[9px] sm:text-[10px] transition-all duration-150",
                           "flex items-center justify-center",
                           isAccessible
                             ? "rounded-lg" // More rounded for accessible seats
@@ -358,14 +415,23 @@ const HallLayout = ({
                           (status === "Normal" || status === "Available") &&
                             "hover:scale-110 hover:z-10"
                         )}
-                        title={`${seat.seat_label} - ${seat.ticket_type}${
+                        style={{
+                          marginTop: `${(seat.seat?.columnOffset || 0) * 24}px`,
+                          marginLeft: `${
+                            seat.seat?.rowOffset
+                              ? seat.seat.rowOffset * 24 +
+                                (row.seats.indexOf(seat) === 0 ? 0 : 4)
+                              : 0 || 0
+                          }px`,
+                        }}
+                        title={`${seat.seat?.row} - ${seat.seat?.number}${
                           isAccessible ? " (Wheelchair Accessible)" : ""
                         } - ${status}`}
                       >
                         {isAccessible ? (
                           <Accessibility className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         ) : (
-                          seat.index
+                          seat.seat?.number
                         )}
                       </button>
                     );
@@ -373,7 +439,14 @@ const HallLayout = ({
                 </div>
 
                 {/* Row Label - Right */}
-                <div className="w-5 sm:w-6 h-6 flex items-center justify-center text-[10px] sm:text-xs font-medium text-rose-300/50">
+                <div
+                  className="w-5 sm:w-6 h-6 flex items-center justify-center text-[10px] sm:text-xs font-medium text-rose-300/50"
+                  style={{
+                    marginTop: `${
+                      (row.seats[0]?.seat?.columnOffset || 0) * 24
+                    }px`,
+                  }}
+                >
                   {row.row}
                 </div>
               </div>
@@ -387,10 +460,11 @@ const HallLayout = ({
         <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-sm border border-rose-500/30 rounded-lg px-3 py-1.5 shadow-xl">
           <div className="flex items-center gap-2 text-xs">
             <span className="font-semibold text-white">
-              {hoveredSeat.seat_label}
+              {hoveredSeat.row} - {hoveredSeat.number}
             </span>
-            <span className="text-rose-300">{hoveredSeat.ticket_type}</span>
-            {hoveredSeat.seat_type === "PhysicallyAbled" && (
+            <span className="text-rose-300">{hoveredSeat.seatType}</span>
+            {hoveredSeat.seatType ===
+              SeatType.REGULAR_WHEELCHAIR_ACCESSIBLE && (
               <>
                 <span className="text-slate-500">•</span>
                 <span className="text-blue-400 flex items-center gap-1">
@@ -400,7 +474,7 @@ const HallLayout = ({
               </>
             )}
             <span className="text-slate-500">•</span>
-            <span className="text-slate-400">{hoveredSeat.seat_status}</span>
+            <span className="text-slate-400">{hoveredSeat.seatType}</span>
           </div>
         </div>
       )}
@@ -422,11 +496,11 @@ const HallLayout = ({
                 <div className="flex flex-wrap gap-1">
                   {selectedSeats.map((seat) => (
                     <Badge
-                      key={seat.seat_id}
+                      key={seat.id}
                       className="bg-rose-500/20 text-rose-300 border-rose-500/40 hover:bg-rose-500/30 cursor-pointer text-xs px-2 py-0"
-                      onClick={() => handleSeatClick(seat)}
+                      // onClick={() => handleSeatClick(seat)}
                     >
-                      {seat.seat_label}
+                      {seat.number}
                       <X className="w-3 h-3 ml-1 opacity-60" />
                     </Badge>
                   ))}
@@ -518,8 +592,9 @@ export const SeatSelectionAccordion = ({
             variant="outline"
             className="border-rose-500/40 text-rose-300 bg-rose-500/10 hidden sm:flex"
           >
-            {data.showinfo.tickets[0] &&
-              `From ${formatPrice(data.showinfo.tickets[0].price)}`}
+            $400
+            {/* {data.showinfo.tickets[0] &&
+              `From ${formatPrice(data.showinfo.tickets[0].price)}`} */}
           </Badge>
           {isOpen ? (
             <ChevronUp className="w-5 h-5 text-rose-400" />

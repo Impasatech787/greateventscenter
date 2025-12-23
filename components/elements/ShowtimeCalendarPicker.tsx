@@ -10,18 +10,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { SeatSelectionAccordion } from "@/components/elements/HallLayout";
-import hallLayoutData from "@/app/data/hall-layout.json";
+import { seat as Seat } from "@/app/generated/prisma";
 
-interface Seat {
-  index: number;
-  is_active: boolean;
-  seat_type: string;
-  seat_label: string;
-  ticket_type: string;
-  seat_id: number;
-  section_label: string;
-  seat_status: "Normal" | "Available" | "Sold" | "Selected" | "Blocked";
-}
+// interface Seat {
+//   index: number;
+//   is_active: boolean;
+//   seat_type: string;
+//   seat_label: string;
+//   ticket_type: string;
+//   seat_id: number;
+//   section_label: string;
+//   seat_status: "Normal" | "Available" | "Sold" | "Selected" | "Blocked";
+// }
 
 interface Row {
   row: string;
@@ -30,7 +30,6 @@ interface Row {
 }
 
 export interface Showtime {
-  ids?: number[];
   label: string;
   date: string;
   format: string;
@@ -130,6 +129,9 @@ export default function ShowtimeCalendarPicker({
   const [selectedShow, setSelectedShow] = useState<TimeId | null>(null);
   const seatSelectionRef = useRef<HTMLDivElement>(null);
 
+  const [hallSeats, setHallSeats] =
+    useState<(Seat & { bookStatus: string })[]>();
+
   const summary = useMemo(
     () =>
       selectedShowtimeData
@@ -184,7 +186,10 @@ export default function ShowtimeCalendarPicker({
     try {
       const res = await fetch(`/api/movies/show/${showId}`);
       const data = await res.json();
-      console.log(data);
+      setHallSeats(
+        data.data.auditorium.seats as (Seat & { bookStatus: string })[]
+      );
+      console.log(data.data.auditorium.seats);
     } catch (error) {
       console.error(error);
     }
@@ -295,19 +300,33 @@ export default function ShowtimeCalendarPicker({
       </div>
 
       {/* Seat Selection Accordion */}
-      {selectedShow && selectedShowtimeData && (
+      {selectedShow && selectedShowtimeData && hallSeats && (
         <div ref={seatSelectionRef} className="mt-6">
           <SeatSelectionAccordion
             data={{
-              session_id: hallLayoutData.session_id,
-              new_seats: hallLayoutData.new_seats as Row[],
-              screen_reverse: hallLayoutData.screen_reverse,
+              showId: selectedShow.id,
+              seats: hallSeats,
+
+              // session_id: hallLayoutData.session_id,
+              // new_seats: hallLayoutData.new_seats as Row[],
+              // screen_reverse: hallLayoutData.screen_reverse,
               showinfo: {
                 show: {
-                  ...hallLayoutData.showinfo.show,
+                  show_id: String(selectedShow.id),
                   movie_name: movieTitle,
+                  datetime: `${selectedShowtimeData.date} ${selectedShow.time}`,
+                  theatre_name: "Great Events Center",
+                  auditorium_name: "Main Hall",
                 },
-                tickets: hallLayoutData.showinfo.tickets,
+                tickets: [
+                  {
+                    tax: 0,
+                    price: 20,
+                    available: 100,
+                    price_level: "Platinum",
+                    ticket_type_id: "1:00:00",
+                  },
+                ],
               },
             }}
             selectedTime={selectedShow?.time}
