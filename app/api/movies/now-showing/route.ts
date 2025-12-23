@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/withAuth";
 
-export const GET = withAuth(async (req: NextRequest) => {
+export const GET = async (req: NextRequest) => {
   try {
     const now = new Date();
     // Start of today
@@ -47,4 +47,4 @@ export const GET = withAuth(async (req: NextRequest) => {
   } catch (ex) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-});
+};

@@ -4,9 +4,10 @@ import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Image as ImageIcon, Trash2 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import AddMovieModal from "@/components/admin/AddMovie";
+import AddMoviePoster from "@/components/admin/AddMoviePoster";
 
 export default function MoviesPage() {
   const { data, loading, call } = useApi<Movie[]>();
@@ -14,6 +15,8 @@ export default function MoviesPage() {
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
   const [selectedMovieName, setSelectedMovieName] = useState<string>("");
+  const [isMoviePosterOpen, setIsMoviePosterOpen] = useState<boolean>(false);
+  const [moviePosterUrl, setMoviePosterUrl] = useState<string>("");
 
   const fetchMovies = async () => {
     const token = localStorage.getItem("authToken") || "";
@@ -98,6 +101,17 @@ export default function MoviesPage() {
         flex: 1,
         cellRenderer: (params: ICellRendererParams<Movie>) => (
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setSelectedMovieId(params.data?.id ?? null);
+                setIsMoviePosterOpen(true);
+                setMoviePosterUrl(params.data?.posterUrl ?? "");
+              }}
+              className="p-1 rounded"
+              title="Movie Poster"
+            >
+              <ImageIcon className="text-green-400" size={18} />
+            </button>
             <button
               onClick={() => {
                 setSelectedMovieId(params.data?.id ?? null);
@@ -197,6 +211,13 @@ export default function MoviesPage() {
         itemType="Movie"
         description="This will permanently delete the Movie and all associated data."
       />
+      {isMoviePosterOpen && selectedMovieId && (
+        <AddMoviePoster
+          onClose={() => setIsMoviePosterOpen(false)}
+          movieId={selectedMovieId}
+          posterUrl={moviePosterUrl}
+        />
+      )}
     </div>
   );
 }

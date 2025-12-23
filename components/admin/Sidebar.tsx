@@ -68,9 +68,9 @@ const menuItems: SideBarMenu[] = [
         link: "/back_office/auditorium",
       },
       {
-        title: "Seating  Chart",
-        icon: <Armchair className="w-4 h-4" />,
-        link: "/back_office/seating-chart",
+        title: "Shows",
+        icon: <Clapperboard className="w-4 h-4" />,
+        link: "/back_office/shows",
       },
       {
         title: "Movies",
@@ -186,13 +186,13 @@ const bottomMenuItems: SideBarMenu[] = [
 // Check if any child is active
 const isChildActive = (
   children: SideBarMenu[] | undefined,
-  pathname: string,
+  pathname: string
 ): boolean => {
   if (!children) return false;
   return children.some(
     (child) =>
       (child.link && pathname === child.link) ||
-      isChildActive(child.children, pathname),
+      isChildActive(child.children, pathname)
   );
 };
 
@@ -223,7 +223,7 @@ const FlyoutMenuItem = ({
             "w-full flex items-center justify-between px-3 py-2 text-sm rounded-md transition-colors",
             shouldBeOpen
               ? "bg-red-50 text-red-700"
-              : "text-gray-700 hover:bg-gray-100",
+              : "text-gray-700 hover:bg-gray-100"
           )}
         >
           <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ const FlyoutMenuItem = ({
       onClick={onItemClick}
       className={cn(
         "flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors",
-        isActive ? "bg-red-700 text-white" : "text-gray-700 hover:bg-gray-100",
+        isActive ? "bg-red-700 text-white" : "text-gray-700 hover:bg-gray-100"
       )}
     >
       <span className={cn(isActive ? "text-white" : "text-gray-500")}>
@@ -295,7 +295,7 @@ const CollapsedMenuItem = ({ item }: CollapsedMenuItemProps) => {
             "flex items-center justify-center w-12 h-12 rounded-lg transition-colors group relative",
             isActive
               ? "bg-red-700 text-white"
-              : "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+              : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
           )}
           title={item.title}
         >
@@ -303,7 +303,7 @@ const CollapsedMenuItem = ({ item }: CollapsedMenuItemProps) => {
             className={cn(
               isActive
                 ? "text-white"
-                : "text-gray-500 group-hover:text-gray-700",
+                : "text-gray-500 group-hover:text-gray-700"
             )}
           >
             {item.icon}
@@ -326,12 +326,12 @@ const CollapsedMenuItem = ({ item }: CollapsedMenuItemProps) => {
           "flex items-center justify-center w-12 h-12 rounded-lg transition-colors group relative",
           isOpen || hasActiveChild
             ? "bg-red-50 text-red-700"
-            : "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+            : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
         )}
       >
         <span
           className={cn(
-            isOpen || hasActiveChild ? "text-red-600" : "text-gray-500",
+            isOpen || hasActiveChild ? "text-red-600" : "text-gray-500"
           )}
         >
           {item.icon}
@@ -431,7 +431,7 @@ const MenuItem = ({
             paddingLeft,
             shouldBeOpen
               ? "bg-red-50 text-red-700"
-              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
           )}
         >
           <div className="flex items-center gap-3">
@@ -473,7 +473,7 @@ const MenuItem = ({
         paddingLeft,
         isActive
           ? "bg-red-700 text-white"
-          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+          : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
       )}
     >
       <span className={cn(isActive ? "text-white" : "text-gray-500")}>
@@ -518,14 +518,14 @@ const Sidebar = () => {
       ref={sideBarRef}
       className={cn(
         "fixed top-0 left-0 h-screen bg-white border-r border-gray-200 z-50 flex flex-col transition-all duration-300 ease-in-out",
-        isExpanded ? "w-72 overflow-hidden" : "w-28 overflow-visible",
+        isExpanded ? "w-72 overflow-hidden" : "w-28 overflow-visible"
       )}
     >
       {/* Logo Section */}
       <div
         className={cn(
           "flex items-center border-b border-gray-200 transition-all duration-300",
-          isExpanded ? "justify-between px-6 py-5" : "justify-center py-4",
+          isExpanded ? "justify-between px-6 py-5" : "justify-center py-4"
         )}
       >
         <div className="flex items-center gap-3">
@@ -552,7 +552,7 @@ const Sidebar = () => {
         onClick={toggleSidebar}
         className={cn(
           "flex items-center justify-center py-3 border-b border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors",
-          isExpanded ? "px-4" : "px-3",
+          isExpanded ? "px-4" : "px-3"
         )}
         title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
       >
@@ -570,7 +570,7 @@ const Sidebar = () => {
       <nav
         className={cn(
           "flex-1 py-4 px-3 space-y-1",
-          isExpanded ? "overflow-y-auto" : "overflow-visible",
+          isExpanded ? "overflow-y-auto" : "overflow-visible"
         )}
       >
         {isExpanded
@@ -591,7 +591,7 @@ const Sidebar = () => {
       <div
         className={cn(
           "border-t border-gray-200",
-          isExpanded ? "p-4" : "py-4 px-3 space-y-2",
+          isExpanded ? "p-4" : "py-4 px-3 space-y-2"
         )}
       >
         {!isExpanded && (
