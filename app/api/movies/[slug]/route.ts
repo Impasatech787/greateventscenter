@@ -1,14 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export const GET = async (req: NextRequest, ctx: any) => {
+export const GET = async (
+  req: NextRequest,
+  ctx: { params: { slug: string } }
+) => {
   try {
     const params = await ctx.params;
     const slug = params.slug;
     const now = new Date();
     const movie = await prisma.movie.findUnique({
       where: {
-        slug,
+        slug: slug,
       },
       include: {
         shows: {
@@ -20,6 +23,7 @@ export const GET = async (req: NextRequest, ctx: any) => {
           select: {
             id: true,
             startAt: true,
+            auditoriumId: true,
           },
         },
       },
@@ -27,6 +31,7 @@ export const GET = async (req: NextRequest, ctx: any) => {
     if (!movie) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+
     const data = {
       id: movie.id,
       slug: movie.slug,
@@ -43,6 +48,7 @@ export const GET = async (req: NextRequest, ctx: any) => {
       shows: movie.shows.map((s) => ({
         id: s.id,
         startAt: s.startAt,
+        auditoriumId: s.auditoriumId,
       })),
     };
     return NextResponse.json({ data, message: "Success!" }, { status: 200 });
@@ -50,4 +56,3 @@ export const GET = async (req: NextRequest, ctx: any) => {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 };
-
