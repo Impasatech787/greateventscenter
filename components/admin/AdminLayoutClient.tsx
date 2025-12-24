@@ -15,7 +15,7 @@ function MainContent({ children }: { children: ReactNode }) {
     <main
       className={cn(
         "flex-1 min-h-screen transition-all duration-300 ease-in-out",
-        isExpanded ? "ml-72" : "ml-16",
+        isExpanded ? "ml-72" : "ml-16"
       )}
     >
       <div className="p-6 lg:p-8">{children}</div>
@@ -29,8 +29,8 @@ export default function AdminLayoutClient({
   children: ReactNode;
 }) {
   ModuleRegistry.registerModules([AllCommunityModule]);
-  const { role, loading } = useRole();
-  if (Array.isArray(role) && role.includes("Admin")) {
+  const { loggedUser, loading } = useRole();
+  if (Array.isArray(loggedUser?.roles) && loggedUser.roles.includes("Admin")) {
     return (
       <SidebarProvider>
         <div className="bg-gray-50 min-h-screen flex">
