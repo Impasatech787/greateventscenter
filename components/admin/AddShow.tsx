@@ -9,9 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { se } from "date-fns/locale";
 import { X } from "lucide-react";
 import { Input } from "../ui/input";
+import { show as Show } from "@/app/generated/prisma";
 interface ShowProps {
   onClose: () => void;
   onAdd: () => void;
@@ -21,11 +21,13 @@ interface ShowForm {
   movieId: string;
   auditoriumId: string;
   startAt: string;
+  showPricing?: ShowPricing[];
 }
 interface ShowFormError {
   movieId?: string;
   auditoriumId?: string;
   startAt?: string;
+  showPricing?: string;
   general?: string;
 }
 interface Auditorium {
@@ -36,17 +38,43 @@ interface Movie {
   id: number;
   title: string;
 }
+interface ShowPricing {
+  seatType: string;
+  priceCents: number;
+}
 const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
   const [form, setForm] = React.useState<ShowForm>({
     movieId: "",
     auditoriumId: "",
     startAt: "",
+    showPricing: [],
   });
   const [formError, setFormError] = useState<ShowFormError | null>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [moviesList, setMoviesList] = useState<Movie[]>([]);
   const [auditoriumsList, setAuditoriumsList] = useState<Auditorium[]>([]);
+  const [showSeatingTypes, setShowSeatingTypes] = useState<string[]>([]);
+  const fetchShow = async (): Promise<
+    (Show & { seatPrices: ShowPricing[] }) | undefined
+  > => {
+    try {
+      const token = localStorage.getItem("authToken") || "";
+      const res = await fetch(`/api/admin/shows/${showId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch show details");
+      }
+      const data = await res.json();
+      return data.data;
+    } catch (error) {
+      console.error("Error fetching show details:", error);
+      return undefined;
+    }
+  };
 
   const fetchMovies = async (): Promise<Movie[]> => {
     // Fetch movies logic here
@@ -88,6 +116,25 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
   };
 
   useEffect(() => {
+    //if showId is present, fetch the show details and populate the form
+    if (showId) {
+      fetchShow().then((data) => {
+        if (data) {
+          const utcStart = new Date(data.startAt);
+          const adjustedDate = new Date(
+            utcStart.getTime() - utcStart.getTimezoneOffset() * 60000
+          );
+          console.log(data.seatPrices);
+          setForm({
+            movieId: data?.movieId?.toString() ?? "",
+            auditoriumId: data?.auditoriumId?.toString() ?? "",
+            startAt: adjustedDate.toISOString().slice(0, 16),
+            showPricing: data?.seatPrices,
+          });
+          setShowSeatingTypes(data.seatPrices.map((sp) => sp.seatType));
+        }
+      });
+    }
     Promise.all([fetchMovies(), fetchAuditoriums()]).then(
       ([movies, auditoriums]) => {
         setMoviesList(movies);
@@ -95,6 +142,26 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
       }
     );
   }, []);
+
+  const onAuditoriumSelect = async (value: string) => {
+    //fetch auditorium to get seat types as we need it for pricing setup
+    try {
+      const token = localStorage.getItem("authToken") || "";
+      const res = await fetch(`/api/admin/auditoriums/${value}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch auditorium details");
+      }
+      const data = await res.json();
+      setShowSeatingTypes(data.data.seatTypes);
+      // You can use the data to update state or perform other actions
+    } catch (error) {
+      console.error("Error fetching auditorium details:", error);
+    }
+  };
 
   const validateShowForm = (): boolean => {
     const errors: ShowFormError = {};
@@ -106,6 +173,23 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
     }
     if (!form.startAt) {
       errors.startAt = "Start time is Required";
+    }
+    // Validate and required pricing for each seat type
+    if (showSeatingTypes.length > 0) {
+      if (!form.showPricing || form.showPricing.length === 0) {
+        errors.showPricing = "Seat pricing is required";
+      } else {
+        form.showPricing.forEach((pricing) => {
+          //CHECK FOR NEGATIVE OR NAN VALUES OR ZERO
+          if (
+            pricing.priceCents < 0 ||
+            isNaN(pricing.priceCents) ||
+            pricing.priceCents === 0
+          ) {
+            errors.showPricing = "Price cannot be negative or zero";
+          }
+        });
+      }
     }
     setFormError(errors);
     return Object.keys(errors).length === 0;
@@ -122,8 +206,9 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
     }
     try {
       const token = localStorage.getItem("authToken") || "";
-      const res = await fetch("/api/admin/shows", {
-        method: "POST",
+      console.log("Submitting show with data:", form);
+      const res = await fetch(`/api/admin/shows${showId ? `/${showId}` : ""}`, {
+        method: showId ? "PATCH" : "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -132,6 +217,7 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
           movieId: parseInt(form.movieId),
           auditoriumId: parseInt(form.auditoriumId),
           startAt: new Date(form.startAt).toISOString(),
+          seatPrices: form.showPricing || [],
         }),
       });
       if (!res.ok) {
@@ -153,7 +239,7 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-900">
@@ -184,11 +270,43 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
 
           <div className="mb-4 space-y-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              Movie
+            </label>
+            <Select
+              value={form.movieId}
+              onValueChange={(value) => {
+                setForm((prev) => ({ ...prev, movieId: value }));
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Movie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Movie Name</SelectLabel>
+                  {moviesList.map((movie) => (
+                    <SelectItem key={movie.id} value={movie.id.toString()}>
+                      {movie.title}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {formError?.movieId && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {formError.movieId}
+              </div>
+            )}
+          </div>
+
+          <div className="mb-4 space-y-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Auditorium
             </label>
             <Select
               value={form.auditoriumId}
               onValueChange={(value) => {
+                onAuditoriumSelect(value);
                 setForm((prev) => ({ ...prev, auditoriumId: value }));
               }}
             >
@@ -215,54 +333,66 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
               </div>
             )}
           </div>
-          <div className="mb-4 space-y-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Movie
-            </label>
-            <Select
-              value={form.movieId}
-              onValueChange={(value) => {
-                setForm((prev) => ({ ...prev, movieId: value }));
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select Venue" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Movie Name</SelectLabel>
-                  {moviesList.map((movie) => (
-                    <SelectItem key={movie.id} value={movie.id.toString()}>
-                      {movie.title}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {formError?.movieId && (
+          <div className="flex flex-col space-y-2 px-2">
+            {showSeatingTypes?.length > 0 && (
+              <div className="">
+                <label className="block text-sm font-medium mb-2">
+                  Seat Pricing
+                </label>
+              </div>
+            )}
+            {showSeatingTypes?.map((seatType) => (
+              <div
+                key={seatType}
+                className="flex items-center justify-between mb-1"
+              >
+                <span className="w-32 font-medium">{seatType}</span>
+                <Input
+                  type="number"
+                  placeholder="Price in cents"
+                  className="flex-1 max-w-32"
+                  value={
+                    form.showPricing?.find((sp) => sp.seatType === seatType)
+                      ?.priceCents || ""
+                  }
+                  onChange={(e) => {
+                    const priceCents = parseInt(e.target.value) || 0;
+                    setForm((prev) => {
+                      const existingPricing = prev.showPricing || [];
+                      const updatedPricing = existingPricing.filter(
+                        (sp) => sp.seatType !== seatType
+                      );
+                      updatedPricing.push({ seatType, priceCents });
+                      return { ...prev, showPricing: updatedPricing };
+                    });
+                  }}
+                />
+              </div>
+            ))}{" "}
+            {formError?.showPricing && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {formError.movieId}
+                {formError.showPricing}
               </div>
             )}
           </div>
 
-          {/* Start At Input Use Calendar Ui from components for date select with time select as well*/}
-          <div className="mb-4 space-y-2"></div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Start At
-          </label>
-          <Input
-            type="datetime-local"
-            value={form.startAt}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, startAt: e.target.value }))
-            }
-          />
-          {formError?.startAt && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {formError.startAt}
-            </div>
-          )}
+          <div className="mb-4 space-y-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Start At
+            </label>
+            <Input
+              type="datetime-local"
+              value={form.startAt}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, startAt: e.target.value }))
+              }
+            />
+            {formError?.startAt && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {formError.startAt}
+              </div>
+            )}
+          </div>
 
           {/* Submit Button */}
           <Button
