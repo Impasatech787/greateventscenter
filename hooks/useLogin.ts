@@ -12,7 +12,7 @@ interface LoginError {
   general?: string;
 }
 export const useLogin = () => {
-  const { setRole } = useRole();
+  const { getLoggedUser } = useRole();
   const [loginForm, setLoginForm] = useState<LoginForm>({
     email: "",
     password: "",
@@ -70,7 +70,7 @@ export const useLogin = () => {
           setLoginError({ general: message });
         } else {
           localStorage.setItem("authToken", data.data.token);
-          setRole(data.data.roles);
+          getLoggedUser();
           if (data.data.roles.includes("Admin")) {
             router.push("/back_office/dashboard");
           } else {
@@ -83,6 +83,7 @@ export const useLogin = () => {
         return;
       }
     } catch (error) {
+      console.error("Login error:", error);
       setLoginError({
         general: "Login failed",
       });

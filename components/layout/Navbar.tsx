@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { useRole } from "@/app/context/AuthContext";
+import ProfileDropDown from "../elements/ProfileDropDown";
 
 interface NavLink {
   title: string;
@@ -41,11 +42,11 @@ const navLinks: NavLink[] = [
     href: "/venues",
     icon: <MapPin className="w-5 h-5" />,
   },
-  {
-    title: "My Bookings",
-    href: "/bookings",
-    icon: <Ticket className="w-5 h-5" />,
-  },
+  // {
+  //   title: "My Bookings",
+  //   href: "/bookings",
+  //   icon: <Ticket className="w-5 h-5" />,
+  // },
 ];
 
 const Navbar = () => {
@@ -57,8 +58,6 @@ const Navbar = () => {
   const topBarRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const { loggedUser, loading } = useRole();
-  console.log("Navbar role:", loggedUser);
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -244,18 +243,15 @@ const Navbar = () => {
                   ))}
                 </div>
               </div>
-              {/* If loggedUser show profile button if not show sign in/up */}
-              {loggedUser ? (
+
+              {/*If loading for checking user show skeleton*/}
+              {loading ? (
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <Button
-                    className={cn(
-                      "rounded-full bg-slate-500 text-white shadow-sm w-10 h-10 flex items-center justify-center hover:bg-slate-600",
-                      "text-white",
-                      "hover:shadow-md transition-shadow"
-                    )}
-                  >
-                    {loggedUser?.email?.charAt(0).toUpperCase()}
-                  </Button>
+                  <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                </div>
+              ) : loggedUser ? (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <ProfileDropDown />
                 </div>
               ) : (
                 <div className="flex items-center gap-2 flex-shrink-0">
