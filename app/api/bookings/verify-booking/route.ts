@@ -1,10 +1,13 @@
 import { withAuth } from "@/lib/withAuth";
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "../route";
 import { prisma } from "@/lib/prisma";
 import { BookingStatus, PaymentMethod } from "@/app/generated/prisma/edge";
 import { AuthUser } from "@/lib/auth";
+import Stripe from "stripe";
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  apiVersion: "2025-12-15.clover",
+});
 export const POST = withAuth(
   async (req: NextRequest, _params: unknown, user: AuthUser) => {
     try {
@@ -16,9 +19,8 @@ export const POST = withAuth(
       // Here you would typically verify the payment session with your payment provider
       // and confirm the booking in your database.
       try {
-        const session = await stripe.checkout.sessions.retrieve(
-          paymentSessionId
-        );
+        const session =
+          await stripe.checkout.sessions.retrieve(paymentSessionId);
         const paymentReferenceId = session.payment_intent as string;
         if (session.payment_status === "paid") {
           //get movie title, auditorium name, event venue ,event date from show id,
@@ -83,13 +85,13 @@ export const POST = withAuth(
           }
           return NextResponse.json(
             { data: { status: "Booking confirmed" }, message: "Success!" },
-            { status: 200 }
+            { status: 200 },
           );
         } else {
           // Payment not successful
           return NextResponse.json(
             { error: "Payment not completed" },
-            { status: 400 }
+            { status: 400 },
           );
         }
       } catch (error) {
@@ -100,5 +102,5 @@ export const POST = withAuth(
       console.error(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );
