@@ -20,6 +20,7 @@ import { seat as Seat, SeatType } from "@/app/generated/prisma";
 import { ShowTicketPrice } from "./ShowtimeCalendarPicker";
 import { useRole } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { th } from "date-fns/locale";
 
 interface SeatRow {
   row: string;
@@ -112,6 +113,7 @@ const HallLayout = ({
   const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[] | []>([]);
   const [zoom, setZoom] = useState(1);
   const [hoveredSeat, setHoveredSeat] = useState<Seat | null>(null);
+  const [isBooking, setIsBooking] = useState(false);
 
   const rows: SeatRow[] = useMemo(() => {
     const byRow = new Map<string, Seat[]>();
@@ -186,6 +188,37 @@ const HallLayout = ({
   // Check if seat is selected
   const isSeatSelected = (seatId: number) => {
     return selectedSeats.some((s) => s.id === seatId);
+  };
+
+  const bookShow = async () => {
+    try {
+      setIsBooking(true);
+      const token = localStorage.getItem("authToken") || "";
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          showId: data.showId,
+          seats: selectedSeats.map((seat) => seat.id),
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Booking failed");
+        // Handle error
+      } else {
+        const data = await response.json();
+        console.log("Booking successful:", data);
+        router.replace(data.data.checkoutUrl);
+        // Handle successful booking
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+    } finally {
+    }
+    setIsBooking(false);
   };
 
   // Get seat status for rendering
@@ -506,8 +539,9 @@ const HallLayout = ({
               </div>
             )}
             <Button
+              onClick={bookShow}
               size="lg"
-              disabled={selectedSeats.length === 0}
+              disabled={selectedSeats.length === 0 || isBooking}
               className={cn(
                 "px-5 sm:px-6 h-11 font-semibold transition-all rounded-xl",
                 selectedSeats.length > 0

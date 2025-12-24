@@ -127,6 +127,8 @@ export default function ShowtimeCalendarPicker({
     [selectedShowtimeData]
   );
 
+  //select first available time when date is changed or initialized
+
   // Scroll to seat selection when a time is selected
   useEffect(() => {
     if (selectedShow && seatSelectionRef.current) {
@@ -158,11 +160,6 @@ export default function ShowtimeCalendarPicker({
     }
   };
 
-  const handleTimeSelect = (time: TimeId) => {
-    setSelectedShow(time);
-    fetchShow(time.id);
-  };
-
   // Check if a date is available (has showtimes)
   const isDateAvailable = (date: Date): boolean => {
     return availableDates.some((d) => d.toDateString() === date.toDateString());
@@ -181,6 +178,24 @@ export default function ShowtimeCalendarPicker({
       console.error(error);
     }
   };
+  const handleTimeSelect = (time: TimeId) => {
+    if (selectedShow && selectedShow.id === time.id) return;
+    setSelectedShow(time);
+    fetchShow(time.id);
+  };
+  useEffect(() => {
+    if (
+      selectedShowtimeData &&
+      selectedShowtimeData.times.length > 0 &&
+      !selectedShow
+    ) {
+      // Defer state update to avoid cascading renders
+      const timeout = setTimeout(() => {
+        handleTimeSelect(selectedShowtimeData.times[0]);
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedShowtimeData]);
 
   return (
     <>

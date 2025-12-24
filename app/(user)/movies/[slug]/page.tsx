@@ -20,12 +20,14 @@ import { movie as Movie, show as Show } from "@/app/generated/prisma";
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
-async function fetchMovie(slug: string) {
+async function fetchMovie(
+  slug: string
+): Promise<(Movie & { shows: Show[] }) | null> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/movies/${slug}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/movies/${slug}`
   );
   if (!res.ok) {
-    throw new Error("Failed To get the movies");
+    return null;
   }
   const data = await res.json();
   return data.data;
@@ -33,9 +35,10 @@ async function fetchMovie(slug: string) {
 
 export default async function MovieDetailPage({ params }: PageProps) {
   const { slug } = await params;
-  const movie: Movie & { shows: Show[] } = await fetchMovie(slug);
-  console.log(movie);
-
+  const movie: (Movie & { shows: Show[] }) | null = await fetchMovie(slug);
+  if (!movie) {
+    notFound();
+  }
   const formatShowTimes = () => {
     const showsByDate: { [key: string]: Show[] } = {};
     movie.shows.forEach((show) => {
@@ -91,7 +94,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           theater: "Great Events Cinemas · Downtown",
           times,
         };
-      },
+      }
     );
 
     return formattedShowtimes;
