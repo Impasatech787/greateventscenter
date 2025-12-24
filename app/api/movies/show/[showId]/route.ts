@@ -18,6 +18,12 @@ export const GET = async (
     const showDetails = await prisma.show.findUnique({
       where: { id: showId },
       include: {
+        seatPrices: {
+          select: {
+            seatType: true,
+            priceCents: true,
+          },
+        },
         auditorium: {
           select: {
             id: true,
@@ -42,10 +48,6 @@ export const GET = async (
       return NextResponse.json({ error: "Show not found" }, { status: 404 });
     }
 
-    // Compute seat booking status for this show.
-    // - BOOKED => BOOKED
-    // - INITIATED and not expired => HELD
-    // - otherwise => AVAILABLE
     const now = new Date();
     const bookingSeats = await prisma.bookingSeat.findMany({
       where: {
@@ -82,15 +84,21 @@ export const GET = async (
       }
     }
 
+    const priceBySeatType = new Map(
+      showDetails.seatPrices.map((p) => [p.seatType, p.priceCents] as const)
+    );
+
     const data = {
       id: showDetails.id,
       movieId: showDetails.movieId,
       startAt: showDetails.startAt,
       auditoriumId: showDetails.auditoriumId,
+      seatPrices: showDetails.seatPrices,
       auditorium: {
         ...showDetails.auditorium,
         seats: showDetails.auditorium.seats.map((s) => ({
           ...s,
+          priceCents: priceBySeatType.get(s.seatType) ?? null,
           bookStatus:
             seatStatusById.get(s.id) ?? ("AVAILABLE" as SeatBookStatus),
         })),
