@@ -1,6 +1,7 @@
 "use client";
 
-import jwt, { JwtPayload } from "jsonwebtoken";
+import { get } from "http";
+import jwt from "jsonwebtoken";
 import React, {
   createContext,
   useContext,
@@ -21,6 +22,7 @@ type RoleContextValue = {
   loggedUser: LoggedUser | null;
   loading: boolean;
   setloggedUser: React.Dispatch<React.SetStateAction<LoggedUser | null>>;
+  getLoggedUser: () => void;
 };
 
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
@@ -29,7 +31,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [loggedUser, setloggedUser] = useState<LoggedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const getLoggedUser = () => {
     const token = localStorage.getItem("authToken");
     if (!token) {
       Promise.resolve().then(() => setLoading(false));
@@ -37,19 +39,20 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     }
 
     const decoded = jwt.decode(token);
-    console.log("Decoded User", decoded);
 
     if (decoded && typeof decoded === "object") {
-      console.log("Decoded object:", decoded);
       const tokenRole = decoded as LoggedUser;
-      console.log("Token role:", tokenRole);
       if (tokenRole) Promise.resolve().then(() => setloggedUser(tokenRole));
     }
     Promise.resolve().then(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    getLoggedUser();
   }, []);
 
   const value = useMemo(
-    () => ({ loggedUser, loading, setloggedUser }),
+    () => ({ loggedUser, loading, setloggedUser, getLoggedUser }),
     [loggedUser, loading]
   );
 
