@@ -129,9 +129,16 @@ export default function ShowsPage() {
       </div>
       {isShowModalOpen && (
         <AddShow
-          onClose={() => setIsShowModalOpen(false)}
+          onClose={() => {
+            setIsShowModalOpen(false);
+            setSelectedShowId(null);
+          }}
           showId={selectedShowId ?? undefined}
-          onAdd={() => fetchShows()}
+          onAdd={() => {
+            fetchShows();
+            setIsShowModalOpen(false);
+            setSelectedShowId(null);
+          }}
         />
       )}
     </div>
