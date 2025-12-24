@@ -12,23 +12,6 @@ import {
 import { SeatSelectionAccordion } from "@/components/elements/HallLayout";
 import { seat as Seat } from "@/app/generated/prisma";
 
-// interface Seat {
-//   index: number;
-//   is_active: boolean;
-//   seat_type: string;
-//   seat_label: string;
-//   ticket_type: string;
-//   seat_id: number;
-//   section_label: string;
-//   seat_status: "Normal" | "Available" | "Sold" | "Selected" | "Blocked";
-// }
-
-interface Row {
-  row: string;
-  index: number;
-  seats: Seat[];
-}
-
 export interface Showtime {
   label: string;
   date: string;
@@ -53,7 +36,10 @@ interface ParsedShowtime extends Showtime {
   month: string;
   day: string;
 }
-
+export interface ShowTicketPrice {
+  seatType: string;
+  priceCents: number;
+}
 // Parse showtime date string to Date object (e.g., "Mon, Jul 15" -> Date)
 const parseShowtimeDate = (dateStr: string, baseYear: number): Date => {
   const [, rest] = dateStr.split(",");
@@ -127,6 +113,7 @@ export default function ShowtimeCalendarPicker({
   const [selectedShowtimeData, setSelectedShowtimeData] =
     useState<ParsedShowtime | null>(quickSelectShowtimes[0] || null);
   const [selectedShow, setSelectedShow] = useState<TimeId | null>(null);
+  const [showSeatPricing, setShowSeatPricing] = useState<ShowTicketPrice[]>([]);
   const seatSelectionRef = useRef<HTMLDivElement>(null);
 
   const [hallSeats, setHallSeats] =
@@ -189,7 +176,7 @@ export default function ShowtimeCalendarPicker({
       setHallSeats(
         data.data.auditorium.seats as (Seat & { bookStatus: string })[]
       );
-      console.log(data.data.auditorium.seats);
+      setShowSeatPricing(data.data.seatPrices as ShowTicketPrice[]);
     } catch (error) {
       console.error(error);
     }
@@ -318,15 +305,7 @@ export default function ShowtimeCalendarPicker({
                   theatre_name: "Great Events Center",
                   auditorium_name: "Main Hall",
                 },
-                tickets: [
-                  {
-                    tax: 0,
-                    price: 20,
-                    available: 100,
-                    price_level: "Platinum",
-                    ticket_type_id: "1:00:00",
-                  },
-                ],
+                tickets: showSeatPricing,
               },
             }}
             selectedTime={selectedShow?.time}
