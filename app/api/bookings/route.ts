@@ -120,10 +120,10 @@ export const POST = withAuth(
           );
 
           const totalPrice = audiSeats.reduce((sum, seat) => {
-            let price = priceMap.get(seat.seatType);
+            const price = priceMap.get(seat.seatType);
             if (!price) {
-              // throw new Error(`Price not set for seat type ${seat.seatType}`);
-              price = 50;
+              throw new Error(`Price not set for seat type ${seat.seatType}`);
+              // price = 50;
             }
             return sum + price;
           }, 0);
