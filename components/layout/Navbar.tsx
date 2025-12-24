@@ -20,6 +20,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { useRole } from "@/app/context/AuthContext";
 
 interface NavLink {
   title: string;
@@ -55,6 +56,8 @@ const Navbar = () => {
   const navRef = useRef<HTMLElement | null>(null);
   const topBarRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
+  const { loggedUser, loading } = useRole();
+  console.log("Navbar role:", loggedUser);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -125,7 +128,9 @@ const Navbar = () => {
                 className="inline-flex items-center gap-1.5 text-white/90 hover:text-white transition-colors"
               >
                 <MapPin className="w-3.5 h-3.5" />
-                <span className="whitespace-nowrap">7440 Crown Point Ave Omaha NE 68134</span>
+                <span className="whitespace-nowrap">
+                  7440 Crown Point Ave Omaha NE 68134
+                </span>
               </a>
               <span className="h-3 w-px bg-white/25" aria-hidden />
               <a
@@ -191,11 +196,9 @@ const Navbar = () => {
           "z-50 transition-[background-color,box-shadow,backdrop-filter,border-color] duration-200",
           isFixed
             ? "fixed top-0 left-0 right-0 bg-white/75 backdrop-blur-xl border-b border-gray-200/70 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-            : "relative bg-transparent border-b border-transparent",
+            : "relative bg-transparent border-b border-transparent"
         )}
       >
-
-
         <div className="flex items-center justify-center">
           <div className="w-full md:container flex items-center justify-between gap-4 md:gap-6 px-6 py-4 md:py-3">
             {/* Logo & Brand Name for Mobile */}
@@ -217,7 +220,7 @@ const Navbar = () => {
                     "flex items-center gap-1 rounded-full border px-1 py-1",
                     isFixed
                       ? "bg-white/60 border-gray-200/70 backdrop-blur"
-                      : "bg-white/40 border-gray-200/50",
+                      : "bg-white/40 border-gray-200/50"
                   )}
                 >
                   {navLinks.map((link) => (
@@ -227,11 +230,13 @@ const Navbar = () => {
                       className={cn(
                         "relative rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all",
                         "text-gray-700 hover:text-gray-900 hover:bg-white/70",
-                        (link.href === "/"
-                          ? pathname === "/"
-                          : pathname.startsWith(link.href))
+                        (
+                          link.href === "/"
+                            ? pathname === "/"
+                            : pathname.startsWith(link.href)
+                        )
                           ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/70"
-                          : "ring-1 ring-transparent",
+                          : "ring-1 ring-transparent"
                       )}
                     >
                       {link.title}
@@ -239,28 +244,42 @@ const Navbar = () => {
                   ))}
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full px-5 py-1 bg-white/60 border-gray-200/70 hover:bg-white"
-                >
-                  <Link href="/signin">Sign in</Link>
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  className={cn(
-                    "rounded-full px-5 py-1 shadow-sm",
-                    "bg-red-700 hover:bg-red-800 text-white",
-                    "hover:shadow-md transition-shadow",
-                  )}
-                >
-                  <Link href="/signup">Sign up</Link>
-                </Button>
-              </div>
+              {/* If loggedUser show profile button if not show sign in/up */}
+              {loggedUser ? (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button
+                    className={cn(
+                      "rounded-full bg-slate-500 text-white shadow-sm w-10 h-10 flex items-center justify-center hover:bg-slate-600",
+                      "text-white",
+                      "hover:shadow-md transition-shadow"
+                    )}
+                  >
+                    {loggedUser?.email?.charAt(0).toUpperCase()}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="rounded-full px-5 py-1 bg-white/60 border-gray-200/70 hover:bg-white"
+                  >
+                    <Link href="/signin">Sign in</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    size="lg"
+                    className={cn(
+                      "rounded-full px-5 py-1 shadow-sm",
+                      "bg-red-700 hover:bg-red-800 text-white",
+                      "hover:shadow-md transition-shadow"
+                    )}
+                  >
+                    <Link href="/signup">Sign up</Link>
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}

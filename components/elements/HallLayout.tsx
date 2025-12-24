@@ -208,13 +208,13 @@ const HallLayout = ({
   // Get seat status for rendering
   const getSeatStatus = (
     seat: Seat & { bookStatus: string }
-  ): "Normal" | "Available" | "Sold" | "Selected" | "Blocked" => {
+  ): "Normal" | "AVAILABLE" | "BOOKED" | "Selected" | "Blocked" => {
     console.log(seat);
     if (isSeatSelected(seat.id)) return "Selected";
     return seat.bookStatus as
       | "Normal"
-      | "Available"
-      | "Sold"
+      | "AVAILABLE"
+      | "BOOKED"
       | "Selected"
       | "Blocked";
   };
@@ -396,7 +396,7 @@ const HallLayout = ({
                         // onClick={() => handleSeatClick(seat)}
                         onMouseEnter={() => setHoveredSeat(seat.seat!)}
                         onMouseLeave={() => setHoveredSeat(null)}
-                        disabled={status === "Sold" || status === "Blocked"}
+                        disabled={status === "BOOKED" || status === "Blocked"}
                         className={cn(
                           "w-6 h-6  border text-[9px] sm:text-[10px] transition-all duration-150",
                           "flex items-center justify-center",
@@ -407,12 +407,12 @@ const HallLayout = ({
                           statusStyle.text,
                           statusStyle.cursor,
                           isAccessible &&
-                            status !== "Sold" &&
+                            status !== "BOOKED" &&
                             status !== "Blocked" &&
                             "ring-1 ring-blue-400/50", // Blue ring for accessible seats
                           status === "Selected" &&
                             "ring-2 ring-rose-400/50 ring-offset-1 ring-offset-slate-950 scale-105",
-                          (status === "Normal" || status === "Available") &&
+                          (status === "Normal" || status === "AVAILABLE") &&
                             "hover:scale-110 hover:z-10"
                         )}
                         style={{
