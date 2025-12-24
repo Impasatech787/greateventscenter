@@ -202,4 +202,6 @@ model seatPrice {
   show       show     @relation(fields: [showId], references: [id])
   seatType   SeatType
   priceCents Int
+
+  @@unique([showId, seatType])
 }
