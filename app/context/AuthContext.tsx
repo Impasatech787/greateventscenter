@@ -8,39 +8,50 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { role as Role } from "../generated/prisma";
+
+interface LoggedUser {
+  email?: string;
+  roles?: string[];
+  userId?: number;
+  exp: number;
+  iat: number;
+}
 
 type RoleContextValue = {
-  role: Role | null;
+  loggedUser: LoggedUser | null;
   loading: boolean;
-  setRole: React.Dispatch<React.SetStateAction<Role | null>>;
+  setloggedUser: React.Dispatch<React.SetStateAction<LoggedUser | null>>;
 };
 
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null);
+  const [loggedUser, setloggedUser] = useState<LoggedUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      setLoading(false);
+      Promise.resolve().then(() => setLoading(false));
       return;
     }
 
     const decoded = jwt.decode(token);
-    console.log(decoded);
+    console.log("Decoded User", decoded);
 
     if (decoded && typeof decoded === "object") {
-      const tokenRole = (decoded as JwtPayload & { roles?: Role }).roles;
-      if (tokenRole) setRole(tokenRole);
+      console.log("Decoded object:", decoded);
+      const tokenRole = decoded as LoggedUser;
+      console.log("Token role:", tokenRole);
+      if (tokenRole) Promise.resolve().then(() => setloggedUser(tokenRole));
     }
-
-    setLoading(false);
+    Promise.resolve().then(() => setLoading(false));
   }, []);
 
-  const value = useMemo(() => ({ role, loading, setRole }), [role, loading]);
+  const value = useMemo(
+    () => ({ loggedUser, loading, setloggedUser }),
+    [loggedUser, loading]
+  );
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }
