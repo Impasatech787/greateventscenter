@@ -78,7 +78,7 @@ const ProfileDropDown = () => {
           className="w-full justify-start"
           onClick={() => setOpen(false)}
         >
-          <Link href="/bookings">
+          <Link href="/profile/bookings">
             <Ticket className="w-4 h-4" />
             My Bookings
           </Link>

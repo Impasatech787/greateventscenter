@@ -34,11 +34,11 @@ export default function PaymentSuccessPage() {
 
   const sessionId = useMemo(
     () => searchParams.get("session_id") ?? "",
-    [searchParams]
+    [searchParams],
   );
   const bookingId = useMemo(
     () => searchParams.get("bookingId") ?? "",
-    [searchParams]
+    [searchParams],
   );
 
   const [state, setState] = useState<VerifyState>({ status: "idle" });
@@ -90,9 +90,9 @@ export default function PaymentSuccessPage() {
                 "string"
                   ? (apiData as { bookingId: string }).bookingId
                   : typeof (apiData as { bookingId?: unknown })?.bookingId ===
-                    "number"
-                  ? (apiData as { bookingId: number }).bookingId
-                  : bookingId || undefined,
+                      "number"
+                    ? (apiData as { bookingId: number }).bookingId
+                    : bookingId || undefined,
               ticketUrl:
                 typeof (apiData as { ticketUrl?: unknown })?.ticketUrl ===
                 "string"
@@ -130,39 +130,30 @@ export default function PaymentSuccessPage() {
     return () => window.clearTimeout(timeoutId);
   }, [sessionId, verifyBooking]);
 
-  const statusBadge =
-    state.status === "success"
-      ? "Confirmed"
-      : state.status === "loading"
-      ? "Confirming"
-      : state.status === "error"
-      ? "Failed"
-      : "Pending";
-
   const title =
     state.status === "success"
       ? "Booking confirmed"
       : state.status === "loading"
-      ? "Confirming your booking"
-      : state.status === "error"
-      ? "We couldn't confirm your booking"
-      : "Payment received";
+        ? "Confirming your booking"
+        : state.status === "error"
+          ? "We couldn't confirm your booking"
+          : "Payment received";
 
   const description =
     state.status === "success"
       ? "Your payment is complete. Your ticket will be available here."
       : state.status === "loading"
-      ? "This can take a few seconds. Please don’t close this page."
-      : state.status === "error"
-      ? "If the payment succeeded, you can retry confirmation or check your bookings."
-      : "We’re preparing your ticket.";
+        ? "This can take a few seconds. Please don’t close this page."
+        : state.status === "error"
+          ? "If the payment succeeded, you can retry confirmation or check your bookings."
+          : "We’re preparing your ticket.";
 
   const iconStyles =
     state.status === "success"
       ? "bg-primary/10 text-green-500"
       : state.status === "error"
-      ? "bg-destructive/10 text-destructive"
-      : "bg-muted text-foreground";
+        ? "bg-destructive/10 text-destructive"
+        : "bg-muted text-foreground";
 
   const icon =
     state.status === "success" ? "✓" : state.status === "error" ? "×" : "…";
@@ -170,8 +161,8 @@ export default function PaymentSuccessPage() {
   const primaryActionLabel = ticketUrl
     ? "View ticket"
     : ticketPdfUrl
-    ? "Download ticket"
-    : "Go to bookings";
+      ? "Download ticket"
+      : "Go to bookings";
 
   const onPrimaryAction = () => {
     if (ticketUrl) {
@@ -182,7 +173,7 @@ export default function PaymentSuccessPage() {
       window.open(ticketPdfUrl, "_blank", "noopener,noreferrer");
       return;
     }
-    router.push("/bookings");
+    router.push("/profile/bookings");
   };
 
   return (
