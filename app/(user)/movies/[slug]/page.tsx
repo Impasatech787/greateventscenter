@@ -21,10 +21,10 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 async function fetchMovie(
-  slug: string
+  slug: string,
 ): Promise<(Movie & { shows: Show[] }) | null> {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/movies/${slug}`
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/movies/${slug}`,
   );
   if (!res.ok) {
     return null;
@@ -84,7 +84,6 @@ export default async function MovieDetailPage({ params }: PageProps) {
             }),
           };
         });
-        console.log(times);
 
         return {
           label,
@@ -94,7 +93,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
           theater: "Great Events Cinemas · Downtown",
           times,
         };
-      }
+      },
     );
 
     return formattedShowtimes;
@@ -103,6 +102,15 @@ export default async function MovieDetailPage({ params }: PageProps) {
   if (!movie) {
     notFound();
   }
+
+  const formatDate = (date: Date) => {
+    const newDate = new Date(date);
+    return newDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -156,7 +164,7 @@ export default async function MovieDetailPage({ params }: PageProps) {
                 </span>
                 <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <CalendarDays className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
-                  {/* {new Date(movie.releaseDate).toISOString()} */}
+                  {formatDate(movie.releaseDate)}
                 </span>
                 <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
                   <Clapperboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/70" />
@@ -195,8 +203,14 @@ export default async function MovieDetailPage({ params }: PageProps) {
                transition-all duration-300 hover:scale-[1.02] 
                flex items-center justify-center"
                 >
-                  <Film className="w-5 h-5 mr-2.5" />
-                  Watch Trailer
+                  <Link
+                    href={movie.trailerUrl ?? "/"}
+                    target="myIframe"
+                    className="flex items-center gap-2"
+                  >
+                    <Film className="w-5 h-5 mr-2.5" />
+                    Watch Trailer
+                  </Link>
                 </Button>
               </div>
 
