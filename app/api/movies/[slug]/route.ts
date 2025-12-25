@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
   req: NextRequest,
-  ctx: { params: { slug: string } }
+  ctx: { params: { slug: string } },
 ) => {
   try {
     const params = await ctx.params;
@@ -42,6 +42,7 @@ export const GET = async (
       posterUrl: movie.posterUrl,
       trailerUrl: movie.trailerUrl,
       genres: movie.genres,
+      releaseDate: movie.releaseDate,
       casts: movie.casts,
       director: movie.director,
       rating: movie.rating,

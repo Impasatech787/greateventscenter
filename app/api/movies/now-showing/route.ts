@@ -41,10 +41,10 @@ export const GET = async (req: NextRequest) => {
       language: u.language,
       posterUrl: u.posterUrl,
       genres: u.genres,
+      releaseDate: u.releaseDate,
     }));
     return NextResponse.json({ data, message: "Success!" }, { status: 200 });
   } catch (ex) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 };
-
