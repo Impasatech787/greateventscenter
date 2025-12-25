@@ -7,7 +7,6 @@ import puppeteer from "puppeteer";
 export const GET = withAuth(
   async (_req: NextRequest, params: { bookingId: string }) => {
     try {
-      console.log("Params:", params);
       const bookingId = params.bookingId;
 
       const bookingData = await prisma.booking.findUnique({
@@ -15,7 +14,11 @@ export const GET = withAuth(
         include: {
           show: {
             include: {
-              auditorium: true,
+              auditorium: {
+                include: {
+                  cinema: true,
+                },
+              },
               movie: true,
               seatPrices: true,
             },
@@ -61,7 +64,11 @@ export const GET = withAuth(
 
       const ticketData: TicketData = {
         movieTitle: bookingData.show.movie?.title ?? "Untitled Movie",
-        moviePosterUrl: bookingData.show.movie?.posterUrl ?? "",
+        moviePosterUrl: process.env.NEXT_PUBLIC_BASE_URL
+          ? `${process.env.NEXT_PUBLIC_BASE_URL}${
+              bookingData.show.movie?.posterUrl ?? "default.jpg"
+            }`
+          : "",
         movieDurationMinutes: bookingData.show.movie?.durationMin ?? 0,
         movieRating: bookingData.show.movie?.rating ?? "NR",
         movieGenre: bookingData.show.movie?.genres ?? "Unknown",
@@ -78,10 +85,12 @@ export const GET = withAuth(
         ],
         invoiceId: bookingData?.invoiceId ?? 0,
         cinema: {
-          name: "Great Events Center",
-          location: "123 Main St, Anytown, USA",
-          phone: "555-1234",
-          email: "  ",
+          name: bookingData.show.auditorium?.cinema?.name ?? "Cinema",
+          location:
+            bookingData.show.auditorium?.cinema?.location ??
+            "7440 CROWN POINT AVE, OMAHA NE 68134",
+          phone: "(402) 812-5616",
+          email: "info@greateventscenter.com",
         },
       };
       const ticketBuffer = await generateTicketBuffer(ticketData);
