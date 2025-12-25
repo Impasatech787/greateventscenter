@@ -34,10 +34,14 @@ export const GET = withAuth(
                 select: {
                   row: true,
                   number: true,
+                  seatType: true,
                 },
               },
             },
           },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       });
 
@@ -47,11 +51,14 @@ export const GET = withAuth(
         moviePosterUrl: u.show?.movie?.posterUrl,
         startAt: u.show.startAt,
         reservedAt: u.reservedAt,
-        seats: u.bookingSeats
-          .map((s) => ({
-            seatNo: `${s.seat?.row ?? ""}${s.seat?.number ?? ""}`,
-          }))
-          .join(","),
+        seats: u.bookingSeats.map((seat) => {
+          return {
+            name: seat.seat?.row + "-" + seat.seat?.number,
+            seatType: seat.seat?.seatType,
+          };
+        }),
+        quantity: u.bookingSeats.length,
+        totalPrice: u.priceCents,
       }));
       return NextResponse.json({ data, message: "Success!" }, { status: 200 });
     } catch {
@@ -161,6 +168,7 @@ export const POST = withAuth(
               priceCents: totalPrice,
               status: BookingStatus.INITIATED,
               expiresAt: new Date(Date.now() + HOLD_MINUTES * 60 * 1000),
+              reservedAt: new Date(Date.now()),
               bookingSeats: {
                 create: seats.map((seatId: number) => ({
                   seatId,

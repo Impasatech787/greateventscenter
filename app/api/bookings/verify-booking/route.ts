@@ -16,15 +16,12 @@ export const POST = withAuth(
       if (!paymentSessionId) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
       }
-      // Here you would typically verify the payment session with your payment provider
-      // and confirm the booking in your database.
       try {
-        const session =
-          await stripe.checkout.sessions.retrieve(paymentSessionId);
+        const session = await stripe.checkout.sessions.retrieve(
+          paymentSessionId
+        );
         const paymentReferenceId = session.payment_intent as string;
         if (session.payment_status === "paid") {
-          //get movie title, auditorium name, event venue ,event date from show id,
-
           const showDetails = await prisma.show.findUnique({
             where: { id: Number(session.metadata?.showId) },
             include: {
@@ -37,7 +34,6 @@ export const POST = withAuth(
               },
             },
           });
-          //get bookingSeats for the booking id from session metadata
           const bookingSeats = await prisma.bookingSeat.findMany({
             where: { bookingId: Number(session.metadata?.bookingId) },
             include: { seat: true },
@@ -57,8 +53,6 @@ export const POST = withAuth(
             userEmail: user?.email ?? "Unknown",
           };
 
-          //first create invoice record after payment is successful
-
           const invoice = await prisma.invoice.create({
             data: {
               priceCents: session.amount_total ?? 0,
@@ -68,8 +62,6 @@ export const POST = withAuth(
               detailJson: JSON.stringify(invoiveDetail),
             },
           });
-
-          // Payment successful, confirm the booking in your database with prisma
 
           const bookingId = session.metadata?.bookingId;
           if (bookingId) {
@@ -85,13 +77,12 @@ export const POST = withAuth(
           }
           return NextResponse.json(
             { data: { status: "Booking confirmed" }, message: "Success!" },
-            { status: 200 },
+            { status: 200 }
           );
         } else {
-          // Payment not successful
           return NextResponse.json(
             { error: "Payment not completed" },
-            { status: 400 },
+            { status: 400 }
           );
         }
       } catch (error) {
@@ -102,5 +93,5 @@ export const POST = withAuth(
       console.error(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  },
+  }
 );
