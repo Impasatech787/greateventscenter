@@ -1,5 +1,5 @@
 import { SeatType } from "@/app/generated/prisma";
-
+import QRCode from "qrcode";
 interface Cinema {
   name: string;
   location: string;
@@ -21,13 +21,43 @@ export interface TicketData {
   bookingId: number;
   totalPriceCents: number;
   instructions: string[];
+  qrImageUrl?: string;
 }
 interface TicketItem {
   seatType: string | null;
   priceCents: number;
   quantity?: number;
 }
-export function generateTicket({ show }: { show: TicketData }): string {
+export async function generateTicket({
+  show,
+}: {
+  show: TicketData;
+}): Promise<string> {
+  const qrPayload = `${show.bookingId}`;
+  const qrData = await QRCode.toDataURL(qrPayload, {
+    errorCorrectionLevel: "M",
+    type: "image/png",
+    width: 240,
+    margin: 1,
+    color: {
+      dark: "#000000",
+      light: "#FFFFFF",
+    },
+  });
+  show.moviePosterUrl =
+    show.moviePosterUrl ||
+    "https://via.placeholder.com/240x360.png?text=No+Image";
+  show.instructions =
+    show.instructions.length > 0
+      ? show.instructions
+      : [
+          "Please arrive at least 15 minutes before the showtime.",
+          "Bring a valid ID along with this ticket for verification.",
+          "No outside food or drinks allowed in the cinema.",
+        ];
+  // Inject the generated QR code data URL into the show object
+  (show as TicketData).qrImageUrl = qrData;
+
   return `
 <!DOCTYPE html>
 <html>
@@ -453,7 +483,7 @@ ${show.cinema.location}
               <img
                 data-bind="qrImageUrl"
                 alt="QR Code"
-                src="https://via.placeholder.com/240x240.png?text=QR"
+                src="${(show as TicketData).qrImageUrl}"
               />
             </div>
             <div class="scan">

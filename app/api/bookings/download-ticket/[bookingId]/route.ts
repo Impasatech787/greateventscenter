@@ -2,7 +2,8 @@ import { withAuth } from "@/lib/withAuth";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { TicketData } from "@/lib/ticketGenerator";
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
 export const GET = withAuth(
   async (_req: NextRequest, params: { bookingId: string }) => {
@@ -37,7 +38,7 @@ export const GET = withAuth(
       const seatNames = bookingData.bookingSeats.map((bs) =>
         bs.seat?.row && bs.seat?.number
           ? `${bs.seat.row}-${bs.seat.number}`
-          : "Unknown Seat"
+          : "Unknown Seat",
       );
 
       const seatItems = bookingData.bookingSeats.reduce(
@@ -45,7 +46,7 @@ export const GET = withAuth(
           const seatType = bs.seat?.seatType ?? "Unknown";
           const priceCents =
             bookingData.show.seatPrices.find(
-              (sp) => sp.seatType === bs.seat?.seatType
+              (sp) => sp.seatType === bs.seat?.seatType,
             )?.priceCents ?? 0;
           const key = `${seatType}-${priceCents}`;
           if (acc[key]) {
@@ -59,7 +60,7 @@ export const GET = withAuth(
           }
           return acc;
         },
-        {}
+        {},
       );
 
       const ticketData: TicketData = {
@@ -105,18 +106,19 @@ export const GET = withAuth(
       console.error(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );
 
 async function generateTicketBuffer(
-  ticketData: TicketData
+  ticketData: TicketData,
 ): Promise<Uint8Array> {
   const { generateTicket } = await import("@/lib/ticketGenerator");
   const html = await generateTicket({ show: ticketData });
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: chromium.args,
+    executablePath: await chromium.executablePath(),
   });
 
   const page = await browser.newPage();
