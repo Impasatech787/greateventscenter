@@ -7,7 +7,6 @@ import {
   Film,
   Building2,
   MapPin,
-  Ticket,
   Phone,
   Mail,
   Facebook,
@@ -195,7 +194,7 @@ const Navbar = () => {
           "z-50 transition-[background-color,box-shadow,backdrop-filter,border-color] duration-200",
           isFixed
             ? "fixed top-0 left-0 right-0 bg-white/75 backdrop-blur-xl border-b border-gray-200/70 shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-            : "relative bg-transparent border-b border-transparent"
+            : "relative bg-transparent border-b border-transparent",
         )}
       >
         <div className="flex items-center justify-center">
@@ -219,7 +218,7 @@ const Navbar = () => {
                     "flex items-center gap-1 rounded-full border px-1 py-1",
                     isFixed
                       ? "bg-white/60 border-gray-200/70 backdrop-blur"
-                      : "bg-white/40 border-gray-200/50"
+                      : "bg-white/40 border-gray-200/50",
                   )}
                 >
                   {navLinks.map((link) => (
@@ -235,7 +234,7 @@ const Navbar = () => {
                             : pathname.startsWith(link.href)
                         )
                           ? "bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/70"
-                          : "ring-1 ring-transparent"
+                          : "ring-1 ring-transparent",
                       )}
                     >
                       {link.title}
@@ -269,7 +268,7 @@ const Navbar = () => {
                     className={cn(
                       "rounded-full px-5 py-1 shadow-sm",
                       "bg-red-700 hover:bg-red-800 text-white",
-                      "hover:shadow-md transition-shadow"
+                      "hover:shadow-md transition-shadow",
                     )}
                   >
                     <Link href="/signup">Sign up</Link>

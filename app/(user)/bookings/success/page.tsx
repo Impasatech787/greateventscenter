@@ -1,9 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,7 +34,7 @@ type VerifyState =
     }
   | { status: "error"; message: string };
 
-export default function PaymentSuccessPage() {
+const PaymentSuccessPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -267,5 +273,13 @@ export default function PaymentSuccessPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+};
+
+export default function BookingSuccessPage() {
+  return (
+    <Suspense>
+      <PaymentSuccessPage />
+    </Suspense>
   );
 }

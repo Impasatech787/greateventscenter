@@ -32,7 +32,7 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="flex flex-col gap-2">
             <Image
-              src="GreatEventsLogo.svg"
+              src="/GreatEventsLogo.svg"
               alt="GreatEvents Center"
               width={52}
               height={52}

@@ -5,8 +5,8 @@ import { BookingStatus } from "@/app/generated/prisma";
 type SeatBookStatus = "AVAILABLE" | "HELD" | "BOOKED";
 
 export const GET = async (
-  req: NextRequest,
-  ctx: { params: { showId: string } }
+  _req: NextRequest,
+  ctx: { params: Promise<{ showId: string }> },
 ) => {
   try {
     const params = await ctx.params;
@@ -85,7 +85,7 @@ export const GET = async (
     }
 
     const priceBySeatType = new Map(
-      showDetails.seatPrices.map((p) => [p.seatType, p.priceCents] as const)
+      showDetails.seatPrices.map((p) => [p.seatType, p.priceCents] as const),
     );
 
     const data = {

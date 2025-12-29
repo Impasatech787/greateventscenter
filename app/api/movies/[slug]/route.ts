@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (
-  req: NextRequest,
-  ctx: { params: { slug: string } },
+  _req: NextRequest,
+  ctx: { params: Promise<{ slug: string }> },
 ) => {
   try {
     const params = await ctx.params;

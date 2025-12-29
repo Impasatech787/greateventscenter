@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,8 +14,6 @@ import {
 
 export default function BookingCancelPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const bookingId = searchParams.get("bookingId");
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">

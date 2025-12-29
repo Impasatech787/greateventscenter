@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import AdminLayoutClient from "@/components/admin/AdminLayoutClient";
-import { RoleProvider } from "@/app/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Great Events Center - Admin",
@@ -12,9 +11,5 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <RoleProvider>
-      <AdminLayoutClient>{children}</AdminLayoutClient>
-    </RoleProvider>
-  );
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

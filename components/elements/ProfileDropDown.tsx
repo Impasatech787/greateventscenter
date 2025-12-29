@@ -29,7 +29,7 @@ const ProfileDropDown = () => {
       setloggedUser(null);
       await deleteSessionCookie();
       setOpen(false);
-      router.push("/");
+      router.push("/signin");
       router.refresh();
     } finally {
       setIsLoggingOut(false);
