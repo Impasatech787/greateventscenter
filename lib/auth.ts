@@ -4,6 +4,8 @@ const JWT_SECRET = process.env.JWT_SECRET!; // Same used during token generation
 
 export interface AuthUser {
   userId: string;
+  id: string;
+
   email: string;
   roles: string[]; // Must exist in JWT token as claim
 }
@@ -19,6 +21,7 @@ export function verifyToken(authHeader: string | null): AuthUser | null {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+    if (!decoded.id && decoded.userId) decoded.id = String(decoded.userId);
     return decoded;
   } catch {
     return null;

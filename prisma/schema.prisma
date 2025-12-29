@@ -117,6 +117,11 @@ model user {
   firstName    String
   lastName     String
   passwordHash String?
+  emailVerifiedAt            DateTime?
+  emailVerificationTokenHash String?
+  emailVerificationExpiresAt DateTime?
+  passwordResetTokenHash     String?
+  passwordResetExpiresAt     DateTime?
   createdAt    DateTime   @default(now())
   bookings     booking[]
   accounts     account[]

@@ -22,6 +22,7 @@ export const useSignUp = () => {
     password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -51,6 +52,7 @@ export const useSignUp = () => {
     }
     setIsLoading(true);
     setErrors({});
+    setSuccessMessage("");
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -68,6 +70,9 @@ export const useSignUp = () => {
       } else {
         setSignUpForm({ email: "", firstName: "", lastName: "", password: "" });
         setErrors({});
+        setSuccessMessage(
+          (data && data.message) || "Check your email to verify your account.",
+        );
       }
     } catch (error) {
       setErrors({ general: "Signup failed. Please try again." });
@@ -84,5 +89,6 @@ export const useSignUp = () => {
     togglePasswordShow,
     showPassword,
     isLoading,
+    successMessage,
   };
 };

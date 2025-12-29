@@ -26,7 +26,6 @@ type BookingRow = booking & {
 };
 
 interface FilterState {
-  bookingId?: number | null;
   movieName: string;
   movieId: number | null;
   cinemaName: string;
@@ -46,7 +45,6 @@ export default function BookingsListPage() {
     { id: number; audiName: string; startTime: string }[]
   >([]);
   const [filterState, setFilterState] = useState<FilterState>({
-    bookingId: null,
     movieId: null,
     movieName: "",
     cinemaName: "",
@@ -58,7 +56,6 @@ export default function BookingsListPage() {
 
   useEffect(() => {
     filterBooking();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filterMovies = async (movieSearchText: string) => {
@@ -88,7 +85,7 @@ export default function BookingsListPage() {
           headers: {
             authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (!apiRes.ok) {
         throw new Error("Failed To filter Cinemas");
@@ -136,7 +133,6 @@ export default function BookingsListPage() {
           authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          bookingId: filterState.bookingId,
           movieId: filterState.movieId,
           cinemaId: filterState.cinemaId,
           showId: filterState.showId,
@@ -177,14 +173,27 @@ export default function BookingsListPage() {
         field: "id",
         flex: 2,
         cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
-
+      {
+        headerName: "User",
+        valueGetter: (params: ValueGetterParams<BookingRow>) => {
+          const first = params.data?.user?.firstName ?? "";
+          const last = params.data?.user?.lastName ?? "";
+          return `${first} ${last}`.trim();
+        },
+        flex: 2,
+        cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
+        floatingFilter: true,
+      },
       {
         headerName: "Movie",
         field: "movieTitle",
         flex: 2,
         cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -192,6 +201,7 @@ export default function BookingsListPage() {
         field: "cinemaName",
         flex: 2,
         cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -199,6 +209,7 @@ export default function BookingsListPage() {
         field: "auditoriumName",
         flex: 2,
         cellClass: "font-semibold text-black",
+        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -206,7 +217,9 @@ export default function BookingsListPage() {
         field: "status",
         flex: 2,
         cellClass: "font-semibold text-black",
+        // filter: "agSetColumnFilter",
         floatingFilter: true,
+        // filterParams: { values: ["Male", "Female", "Other"] },
       },
       {
         headerName: "Show Time",
@@ -214,23 +227,28 @@ export default function BookingsListPage() {
         flex: 2,
         valueFormatter: dateFormatter,
         cellClass: "font-semibold text-black",
-        filter: true,
+        filter: "agDateColumnFilter",
+        filterParams: {
+          defaultOption: "inRange",
+          buttons: ["apply", "reset", "cancel"], // Add the 'reset' button
+          closeOnApply: true,
+        },
+
+        // floatingFilter: true,
       },
       {
         headerName: "Actions",
         flex: 1,
-        cellRenderer: (_params: ICellRendererParams<BookingRow>) => (
+        cellRenderer: (params: ICellRendererParams<BookingRow>) => (
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const id = _params.data?.id;
-                if (!id) return;
-                router.push(`/back_office/bookings/${id}`);
+                router.push(`/back_office/bookings/${params.data?.id}`);
               }}
               className="p-1 rounded hover:bg-blue-100"
-              title="View"
+              title="Edit"
             >
-              <Eye className="text-blue-600" size={18} />
+              <Eye className="text-gray-800" size={18} />
             </button>
             <button
               onClick={() => {}}
@@ -239,20 +257,13 @@ export default function BookingsListPage() {
             >
               <Edit className="text-blue-400" size={18} />
             </button>
-            <button
-              onClick={() => {}}
-              className="p-1 rounded hover:bg-red-100"
-              title="Delete"
-            >
-              <Trash2 className="text-red-400" size={18} />
-            </button>
           </div>
         ),
         sortable: false,
         filter: false,
       },
     ],
-    [dateFormatter, router]
+    [dateFormatter],
   );
 
   return (
@@ -270,23 +281,7 @@ export default function BookingsListPage() {
       <div className="flex flex-col gap-2 py-2">
         <h2 className="text-lg font-semibold">Search Booking</h2>
         <div className="flex flex-col md:flex-row gap-2 items-center">
-          <div className="space-y-2 relative group">
-            <label>Booking ID</label>
-            <Input
-              onWheel={(e) => e.currentTarget.blur()}
-              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              type="number"
-              value={filterState.bookingId ?? ""}
-              onChange={(e) => {
-                setFilterState((prev) => ({
-                  ...prev,
-                  bookingId: e.target.value ? parseInt(e.target.value) : null,
-                }));
-              }}
-              placeholder="Booking ID"
-            />
-          </div>
-          <div className="space-y-2 relative group">
+          <div className="spcae-y-2 relative group">
             <label>Movie</label>
             <Input
               className=""
@@ -325,7 +320,7 @@ export default function BookingsListPage() {
                 ))}
             </div>
           </div>
-          <div className="space-y-2 relative group">
+          <div className="spcae-y-2 relative group">
             <label>Cinema</label>
             <Input
               className=""
