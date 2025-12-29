@@ -16,6 +16,7 @@ export default function SignupPage() {
     handleInputChange,
     handleSignUp,
     isLoading,
+    successMessage,
   } = useSignUp();
 
   return (
@@ -188,6 +189,11 @@ export default function SignupPage() {
           {errors.general && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 text-center">
               {errors.general}
+            </div>
+          )}
+          {successMessage && !errors.general && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700 text-center">
+              {successMessage}
             </div>
           )}
 

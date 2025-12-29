@@ -126,6 +126,14 @@ export default function LoginPage() {
                   {loginError.password}
                 </span>
               )}
+              <div className="text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[#BB2327] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             {/* General Error */}

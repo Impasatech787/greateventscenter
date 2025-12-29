@@ -27,6 +27,12 @@ export async function POST(req: Request) {
     if (user && user.passwordHash) {
       const isValid = await bcrypt.compare(password, user.passwordHash);
       if (isValid) {
+        if (!user.emailVerifiedAt) {
+          return NextResponse.json(
+            { error: "Please verify your email before signing in." },
+            { status: 403 },
+          );
+        }
         const token = jwt.sign(
           {
             userId: user.id,
