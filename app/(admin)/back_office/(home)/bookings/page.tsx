@@ -1,7 +1,6 @@
 "use client";
 
-import { useApi } from "@/hooks/useApi";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ColDef,
   ICellRendererParams,
@@ -9,10 +8,11 @@ import {
   ValueGetterParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Eye, Trash2 } from "lucide-react";
 import { booking } from "@/app/generated/prisma";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 type BookingRow = booking & {
   user?: {
@@ -25,21 +25,137 @@ type BookingRow = booking & {
   startAt?: string | Date;
 };
 
-export default function BookingsListPage() {
-  const { data, call, loading } = useApi<BookingRow[]>();
+interface FilterState {
+  bookingId?: number | null;
+  movieName: string;
+  movieId: number | null;
+  cinemaName: string;
+  cinemaId: number | null;
+  showDate: string;
+  showId: number | null;
+  showName: string;
+}
 
-  const fetchBookings = async () => {
-    const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/bookings", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-  };
+export default function BookingsListPage() {
+  const router = useRouter();
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [movies, setMovies] = useState<{ title: string; id: number }[]>([]);
+  const [cinemas, setCinemas] = useState<{ name: string; id: number }[]>([]);
+  const [shows, setShows] = useState<
+    { id: number; audiName: string; startTime: string }[]
+  >([]);
+  const [filterState, setFilterState] = useState<FilterState>({
+    bookingId: null,
+    movieId: null,
+    movieName: "",
+    cinemaName: "",
+    cinemaId: null,
+    showDate: "",
+    showId: null,
+    showName: "",
+  });
 
   useEffect(() => {
-    fetchBookings();
+    filterBooking();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const filterMovies = async (movieSearchText: string) => {
+    const token = localStorage.getItem("authToken") || "";
+    try {
+      const apiRes = await fetch(`/api/admin/movies?name=${movieSearchText}`, {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+      if (!apiRes.ok) {
+        throw new Error("Failed To filter Movie");
+      } else {
+        const res = await apiRes.json();
+        setMovies(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const filterCinema = async (cinemaSearchText: string) => {
+    const token = localStorage.getItem("authToken") || "";
+    try {
+      const apiRes = await fetch(
+        `/api/admin/cinemas?name=${cinemaSearchText}`,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!apiRes.ok) {
+        throw new Error("Failed To filter Cinemas");
+      } else {
+        const res = await apiRes.json();
+        setCinemas(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filterShows = async (filterDate: string) => {
+    try {
+      const token = localStorage.getItem("authToken") || "";
+      const apiRes = await fetch(`/api/admin/shows/filter`, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          movieId: filterState.movieId,
+          cinemaId: filterState.cinemaId,
+          showDate: filterDate,
+        }),
+      });
+      if (!apiRes.ok) {
+        throw new Error("Failed To filter Shows");
+      } else {
+        const res = await apiRes.json();
+        setShows(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filterBooking = async () => {
+    const token = localStorage.getItem("authToken") || "";
+    try {
+      setIsLoading(true);
+      const apiRes = await fetch(`/api/admin/bookings/filter`, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bookingId: filterState.bookingId,
+          movieId: filterState.movieId,
+          cinemaId: filterState.cinemaId,
+          showId: filterState.showId,
+          showDate: filterState.showDate,
+        }),
+      });
+      if (!apiRes.ok) {
+        throw new Error("Failed To filter Bookings");
+      } else {
+        const res = await apiRes.json();
+        console.log(res);
+        setBookings(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const dateFormatter = useCallback((params: ValueFormatterParams) => {
     return new Date(params.value).toLocaleString("en-US", {
@@ -52,7 +168,7 @@ export default function BookingsListPage() {
   }, []);
 
   const gridRef = useRef<AgGridReact>(null);
-  const rowData: BookingRow[] = data ?? [];
+  const rowData: BookingRow[] = bookings ?? [];
 
   const columnDefs = useMemo<ColDef<BookingRow>[]>(
     () => [
@@ -61,27 +177,14 @@ export default function BookingsListPage() {
         field: "id",
         flex: 2,
         cellClass: "font-semibold text-black",
-        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
-      {
-        headerName: "User",
-        valueGetter: (params: ValueGetterParams<BookingRow>) => {
-          const first = params.data?.user?.firstName ?? "";
-          const last = params.data?.user?.lastName ?? "";
-          return `${first} ${last}`.trim();
-        },
-        flex: 2,
-        cellClass: "font-semibold text-black",
-        filter: "agTextColumnFilter",
-        floatingFilter: true,
-      },
+
       {
         headerName: "Movie",
         field: "movieTitle",
         flex: 2,
         cellClass: "font-semibold text-black",
-        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -89,7 +192,6 @@ export default function BookingsListPage() {
         field: "cinemaName",
         flex: 2,
         cellClass: "font-semibold text-black",
-        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -97,7 +199,6 @@ export default function BookingsListPage() {
         field: "auditoriumName",
         flex: 2,
         cellClass: "font-semibold text-black",
-        filter: "agTextColumnFilter",
         floatingFilter: true,
       },
       {
@@ -105,9 +206,7 @@ export default function BookingsListPage() {
         field: "status",
         flex: 2,
         cellClass: "font-semibold text-black",
-        // filter: "agSetColumnFilter",
         floatingFilter: true,
-        // filterParams: { values: ["Male", "Female", "Other"] },
       },
       {
         headerName: "Show Time",
@@ -115,20 +214,24 @@ export default function BookingsListPage() {
         flex: 2,
         valueFormatter: dateFormatter,
         cellClass: "font-semibold text-black",
-        filter: "agDateColumnFilter",
-        filterParams: {
-          defaultOption: "inRange",
-          buttons: ["apply", "reset", "cancel"], // Add the 'reset' button
-          closeOnApply: true,
-        },
-
-        // floatingFilter: true,
+        filter: true,
       },
       {
         headerName: "Actions",
         flex: 1,
         cellRenderer: (_params: ICellRendererParams<BookingRow>) => (
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const id = _params.data?.id;
+                if (!id) return;
+                router.push(`/back_office/bookings/${id}`);
+              }}
+              className="p-1 rounded hover:bg-blue-100"
+              title="View"
+            >
+              <Eye className="text-blue-600" size={18} />
+            </button>
             <button
               onClick={() => {}}
               className="p-1 rounded hover:bg-blue-100"
@@ -149,7 +252,7 @@ export default function BookingsListPage() {
         filter: false,
       },
     ],
-    [dateFormatter],
+    [dateFormatter, router]
   );
 
   return (
@@ -167,23 +270,169 @@ export default function BookingsListPage() {
       <div className="flex flex-col gap-2 py-2">
         <h2 className="text-lg font-semibold">Search Booking</h2>
         <div className="flex flex-col md:flex-row gap-2 items-center">
-          <div className="spcae-y-2">
-            <label>Movie</label>
-            <Input className="" placeholder="Movie Name" />
-          </div>
-          <div className="spcae-y-2">
-            <label>Audi</label>
-            <Input className="" placeholder="Audi" />
-          </div>
-          <div className="spcae-y-2">
-            <label>Date</label>
+          <div className="space-y-2 relative group">
+            <label>Booking ID</label>
             <Input
-              className=""
-              type="datetime-local"
-              placeholder="Start Time"
+              onWheel={(e) => e.currentTarget.blur()}
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              type="number"
+              value={filterState.bookingId ?? ""}
+              onChange={(e) => {
+                setFilterState((prev) => ({
+                  ...prev,
+                  bookingId: e.target.value ? parseInt(e.target.value) : null,
+                }));
+              }}
+              placeholder="Booking ID"
             />
           </div>
-          <Button className="bg-blue-400 mt-4">Filter</Button>
+          <div className="space-y-2 relative group">
+            <label>Movie</label>
+            <Input
+              className=""
+              type="text"
+              value={filterState.movieName}
+              onChange={(e) => {
+                setFilterState((prev) => ({
+                  ...prev,
+                  movieName: e.target.value,
+                  movieId: null,
+                }));
+                filterMovies(e.target.value);
+              }}
+              placeholder="Movie Name"
+            />
+            <div className="absolute mt-2 z-50 border border-gray-200 bg-gray-100 w-full hidden group-focus-within:block max-h-60 overflow-y-auto">
+              {movies.length != 0 &&
+                movies.map((movie) => (
+                  <div
+                    key={movie.id}
+                    className="border-b p-1 hover:bg-gray-200 cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setFilterState((prev) => ({
+                        ...prev,
+                        movieId: movie.id,
+                        movieName: movie.title,
+                      }));
+                      requestAnimationFrame(() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                      });
+                    }}
+                  >
+                    {movie.title}
+                  </div>
+                ))}
+            </div>
+          </div>
+          <div className="space-y-2 relative group">
+            <label>Cinema</label>
+            <Input
+              className=""
+              type="text"
+              value={filterState.cinemaName}
+              onChange={(e) => {
+                setFilterState((prev) => ({
+                  ...prev,
+                  cinemaName: e.target.value,
+                  cinemaId: null,
+                }));
+                filterCinema(e.target.value);
+              }}
+              placeholder="Cinema"
+            />
+            <div className="absolute mt-2 z-50 border border-gray-200 bg-gray-100 w-full hidden group-focus-within:block max-h-60 overflow-y-auto">
+              {cinemas.length != 0 &&
+                cinemas.map((cinema) => (
+                  <div
+                    key={cinema.id}
+                    className="border-b p-1 hover:bg-gray-200 cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setFilterState((prev) => ({
+                        ...prev,
+                        cinemaId: cinema.id,
+                        cinemaName: cinema.name,
+                      }));
+
+                      requestAnimationFrame(() => {
+                        (document.activeElement as HTMLElement)?.blur();
+                      });
+                    }}
+                  >
+                    {cinema.name}
+                  </div>
+                ))}
+            </div>
+          </div>
+          <div className="space-y-2 relative group">
+            <label>Show Date</label>
+            <Input
+              className=""
+              type="date"
+              value={filterState.showDate}
+              onChange={(e) => {
+                setFilterState((prev) => ({
+                  ...prev,
+                  showDate: e.target.value,
+                }));
+                filterShows(e.target.value);
+              }}
+              placeholder="Select Show Date"
+            />
+          </div>
+          {filterState.cinemaId &&
+            filterState.movieId &&
+            filterState.showDate && (
+              <>
+                <div className="space-y-2 relative group">
+                  <label>Show</label>
+                  <Input
+                    className=""
+                    type="text"
+                    value={filterState.showName}
+                    onChange={(e) => {
+                      setFilterState((prev) => ({
+                        ...prev,
+                        showName: e.target.value,
+                      }));
+                      filterCinema(e.target.value);
+                    }}
+                    placeholder="Search Show"
+                  />
+                  <div className="absolute mt-2 z-50 border border-gray-200 bg-gray-100 w-full hidden group-focus-within:block max-h-60 overflow-y-auto">
+                    {shows.length != 0 &&
+                      shows.map((show) => (
+                        <div
+                          key={show.id}
+                          className="border-b p-1 hover:bg-gray-200 cursor-pointer"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setFilterState((prev) => ({
+                              ...prev,
+                              showId: show.id,
+                              showName:
+                                show.audiName +
+                                "-" +
+                                new Date(show.startTime).toLocaleTimeString(),
+                            }));
+                            requestAnimationFrame(() => {
+                              (document.activeElement as HTMLElement)?.blur();
+                            });
+                          }}
+                        >
+                          {show.audiName +
+                            "-" +
+                            new Date(show.startTime).toLocaleTimeString()}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
+          <Button className="bg-blue-400 mt-5" onClick={filterBooking}>
+            Filter
+          </Button>
         </div>
       </div>
       <div
@@ -198,13 +447,13 @@ export default function BookingsListPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}
           rowHeight={40}
           pagination={true}
           paginationPageSize={10}
+          loading={isLoading}
         />
       </div>
     </div>
