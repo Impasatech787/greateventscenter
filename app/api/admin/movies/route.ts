@@ -6,8 +6,16 @@ import { slugify } from "@/lib/slug";
 export const GET = withAuth(
   async (req: NextRequest) => {
     try {
-      const movies = await prisma.movie.findMany({});
-
+      const { searchParams } = new URL(req.url);
+      const movieName = searchParams.get("name");
+      const movies = await prisma.movie.findMany({
+        where: {
+          title: {
+            contains: movieName ?? "",
+            mode: "insensitive",
+          },
+        },
+      });
       const data = movies.map((u) => ({
         id: u.id,
         slug: u.slug,
@@ -85,4 +93,3 @@ export const POST = withAuth(
   },
   ["Admin"],
 );
-

@@ -5,7 +5,16 @@ import { withAuth } from "@/lib/withAuth";
 export const GET = withAuth(
   async (req: NextRequest) => {
     try {
-      const cinemas = await prisma.cinema.findMany({});
+      const { searchParams } = new URL(req.url);
+      const cinemaName = searchParams.get("name");
+      const cinemas = await prisma.cinema.findMany({
+        where: {
+          name: {
+            contains: cinemaName ?? "",
+            mode: "insensitive",
+          },
+        },
+      });
 
       const data = cinemas.map((u) => ({
         id: u.id,
