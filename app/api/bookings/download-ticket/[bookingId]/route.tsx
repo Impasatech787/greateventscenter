@@ -6,6 +6,7 @@ import { TicketData } from "@/lib/ticketGenerator";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { TicketPdf } from "@/lib/pdf/Ticket";
 import * as QRCode from "qrcode";
+import { BookingStatus } from "@/app/generated/prisma";
 
 export const GET = withAuth(
   async (_req: NextRequest, params: { bookingId: string }) => {
@@ -36,11 +37,17 @@ export const GET = withAuth(
       if (!bookingData) {
         return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
+      if (bookingData.status != BookingStatus.BOOKED) {
+        return NextResponse.json(
+          { error: "Booking not Completed" },
+          { status: 401 },
+        );
+      }
 
       const seatNames = bookingData.bookingSeats.map((bs) =>
         bs.seat?.row && bs.seat?.number
           ? `${bs.seat.row}-${bs.seat.number}`
-          : "Unknown Seat"
+          : "Unknown Seat",
       );
 
       const seatItems = bookingData.bookingSeats.reduce(
@@ -48,7 +55,7 @@ export const GET = withAuth(
           const seatType = bs.seat?.seatType ?? "Unknown";
           const priceCents =
             bookingData.show.seatPrices.find(
-              (sp) => sp.seatType === bs.seat?.seatType
+              (sp) => sp.seatType === bs.seat?.seatType,
             )?.priceCents ?? 0;
           const key = `${seatType}-${priceCents}`;
           if (acc[key]) {
@@ -62,7 +69,7 @@ export const GET = withAuth(
           }
           return acc;
         },
-        {}
+        {},
       );
 
       const ticketData: TicketData = {
@@ -109,7 +116,7 @@ export const GET = withAuth(
           width: 240,
           margin: 1,
           color: { dark: "#000000", light: "#FFFFFF" },
-        }
+        },
       );
       const ticket = await renderToBuffer(<TicketPdf show={ticketData} />);
       return new NextResponse(Buffer.from(ticket), {
@@ -123,5 +130,5 @@ export const GET = withAuth(
       console.error(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );

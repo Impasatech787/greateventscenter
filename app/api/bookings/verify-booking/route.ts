@@ -13,13 +13,23 @@ export const POST = withAuth(
     try {
       const body = await req.json();
       const paymentSessionId = body?.paymentSessionId;
-      if (!paymentSessionId) {
+      const bookingId = body?.bookingId;
+      if (!paymentSessionId && !bookingId) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
       }
-      try {
-        const session = await stripe.checkout.sessions.retrieve(
-          paymentSessionId
+      console.log(bookingId);
+      const booking = await prisma.booking.findFirst({
+        where: { id: Number(bookingId) },
+      });
+      if (booking && booking.status == BookingStatus.BOOKED) {
+        return NextResponse.json(
+          { error: "Booking Already Verified" },
+          { status: 409 },
         );
+      }
+      try {
+        const session =
+          await stripe.checkout.sessions.retrieve(paymentSessionId);
         const paymentReferenceId = session.payment_intent as string;
         if (session.payment_status === "paid") {
           const showDetails = await prisma.show.findUnique({
@@ -77,12 +87,12 @@ export const POST = withAuth(
           }
           return NextResponse.json(
             { data: { status: "Booking confirmed" }, message: "Success!" },
-            { status: 200 }
+            { status: 200 },
           );
         } else {
           return NextResponse.json(
             { error: "Payment not completed" },
-            { status: 400 }
+            { status: 400 },
           );
         }
       } catch (error) {
@@ -93,5 +103,5 @@ export const POST = withAuth(
       console.error(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );

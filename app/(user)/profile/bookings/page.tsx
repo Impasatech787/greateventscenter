@@ -1,5 +1,6 @@
 "use client";
 
+import { BookingStatus } from "@/app/generated/prisma";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,6 +18,7 @@ interface Booking {
   quantity: number;
   totalPrice: number;
   seats: BookSeat[];
+  status: BookingStatus;
 }
 
 function formatDT(value?: string) {
@@ -157,29 +159,28 @@ function BookingCard({ booking }: { booking: Booking }) {
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 justify-end">
-              {/* <button */}
-              {/*   type="button" */}
-              {/*   className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50" */}
-              {/*   onClick={() => { */}
-              {/*     console.log("View booking", booking.id); */}
-              {/*   }} */}
-              {/* > */}
-              {/*   View details */}
-              {/* </button> */}
-
-              <button
-                type="button"
-                disabled={isDownloading}
-                className={
-                  `rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700` +
-                  (isDownloading ? " opacity-50 cursor-not-allowed" : "")
-                }
-                onClick={() => {
-                  downloadTicket(booking.id);
-                }}
-              >
-                {isDownloading ? "Downloading..." : "Download Ticket"}
-              </button>
+              {booking.status != BookingStatus.BOOKED && (
+                <div
+                  className={` rounded-xl bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600`}
+                >
+                  Failed
+                </div>
+              )}
+              {booking.status == BookingStatus.BOOKED && (
+                <button
+                  type="button"
+                  disabled={isDownloading}
+                  className={
+                    `rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700` +
+                    (isDownloading ? " opacity-50 cursor-not-allowed" : "")
+                  }
+                  onClick={() => {
+                    downloadTicket(booking.id);
+                  }}
+                >
+                  {isDownloading ? "Downloading..." : "Download Ticket"}
+                </button>
+              )}
             </div>
           </div>
         </div>

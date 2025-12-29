@@ -32,7 +32,8 @@ type VerifyState =
         ticketImageUrl?: string;
       };
     }
-  | { status: "error"; message: string };
+  | { status: "error"; message: string }
+  | { status: "aleady_verified"; message: string };
 
 const PaymentSuccessPage = () => {
   const router = useRouter();
@@ -74,7 +75,10 @@ const PaymentSuccessPage = () => {
           "Content-Type": "application/json",
           ...(token ? { authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ paymentSessionId: sessionId }),
+        body: JSON.stringify({
+          paymentSessionId: sessionId,
+          bookingId: bookingId,
+        }),
       });
 
       const data: unknown = await response.json().catch(() => ({}));
@@ -83,6 +87,10 @@ const PaymentSuccessPage = () => {
           typeof (data as { error?: unknown })?.error === "string"
             ? (data as { error: string }).error
             : "Booking verification failed.";
+        if (response.status == 409) {
+          setState({ status: "aleady_verified", message });
+          return;
+        }
         setState({ status: "error", message });
         return;
       }
@@ -143,7 +151,9 @@ const PaymentSuccessPage = () => {
         ? "Confirming your booking"
         : state.status === "error"
           ? "We couldn't confirm your booking"
-          : "Payment received";
+          : state.status === "aleady_verified"
+            ? "Payment Already Verified"
+            : "Payment received";
 
   const description =
     state.status === "success"
@@ -152,7 +162,9 @@ const PaymentSuccessPage = () => {
         ? "This can take a few seconds. Please don’t close this page."
         : state.status === "error"
           ? "If the payment succeeded, you can retry confirmation or check your bookings."
-          : "We’re preparing your ticket.";
+          : state.status === "aleady_verified"
+            ? "Your Payment Has beed Already Verified"
+            : "We’re preparing your ticket.";
 
   const iconStyles =
     state.status === "success"
