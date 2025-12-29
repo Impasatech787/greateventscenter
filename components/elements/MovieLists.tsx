@@ -109,66 +109,78 @@ const MovieLists: React.FC<MovieListProp> = ({ movies }) => {
 
   return (
     <section className="py-12 bg-white">
-      <div className="container px-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-1">Movies</h2>
-            <p className="text-gray-500 text-sm">
-              Latest releases and premieres
-            </p>
-          </div>
-          <Link
-            href="/movies"
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
-          >
-            View all
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-
-        {/* Movie Cards Carousel */}
-        <div className="relative">
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-5 overflow-x-auto scrollbar-hide pb-4"
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-            }}
-          >
-            {movies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
+      {movies.length != 0 && (
+        <div className="container px-4">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-8">
+            <div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-1">Movies</h2>
+              <p className="text-gray-500 text-sm">
+                Latest releases and premieres
+              </p>
+            </div>
+            <Link
+              href="/movies"
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors"
+            >
+              View all
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          {/* Scroll Left Button - positioned on the poster area */}
-          <button
-            onClick={scrollLeft}
-            className="absolute left-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-300 hover:bg-gray-50 transition-colors z-10 -translate-x-1/2"
-            style={{
-              top: "calc((220px * 4 / 3) / 2)",
-              transform: "translateX(-50%) translateY(-50%)",
-            }}
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-600" />
-          </button>
+          {/* Movie Cards Carousel */}
+          <div className="relative">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-5 overflow-x-auto scrollbar-hide pb-4"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
+            >
+              {movies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie} />
+              ))}
+            </div>
 
-          {/* Scroll Right Button - positioned on the poster area */}
-          <button
-            onClick={scrollRight}
-            className="absolute right-0 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-300 hover:bg-gray-50 transition-colors z-10"
-            style={{
-              top: "calc((220px * 4 / 3) / 2)",
-              transform: "translateX(50%) translateY(-50%)",
-            }}
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </button>
+            {/* Scroll Left Button - positioned on the poster area */}
+            <button
+              onClick={scrollLeft}
+              className="absolute left-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-300 hover:bg-gray-50 transition-colors z-10 -translate-x-1/2"
+              style={{
+                top: "calc((220px * 4 / 3) / 2)",
+                transform: "translateX(-50%) translateY(-50%)",
+              }}
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
+            </button>
+
+            {/* Scroll Right Button - positioned on the poster area */}
+            <button
+              onClick={scrollRight}
+              className="absolute right-0 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-300 hover:bg-gray-50 transition-colors z-10"
+              style={{
+                top: "calc((220px * 4 / 3) / 2)",
+                transform: "translateX(50%) translateY(-50%)",
+              }}
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {movies.length == 0 && (
+        <div className="container px-4">
+          <div className="flex items-start justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-1">
+              No Movies to Show
+            </h2>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

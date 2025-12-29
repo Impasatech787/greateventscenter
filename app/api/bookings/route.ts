@@ -14,7 +14,7 @@ export const GET = withAuth(
     try {
       const bookings = await prisma.booking.findMany({
         where: {
-          userId: Number(user.id),
+          userId: Number(user.userId),
         },
         include: {
           show: {
@@ -64,7 +64,7 @@ export const GET = withAuth(
     } catch {
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  },
+  }
 );
 
 export const POST = withAuth(
@@ -85,13 +85,13 @@ export const POST = withAuth(
       if (!process.env.STRIPE_SECRET_KEY) {
         return NextResponse.json(
           { error: "Stripe is not configured" },
-          { status: 500 },
+          { status: 500 }
         );
       }
       if (!process.env.NEXT_PUBLIC_BASE_URL) {
         return NextResponse.json(
           { error: "NEXT_PUBLIC_BASE_URL is not configured" },
-          { status: 500 },
+          { status: 500 }
         );
       }
 
@@ -131,7 +131,7 @@ export const POST = withAuth(
                   { status: BookingStatus.BOOKED },
                   { status: BookingStatus.INITIATED, expiresAt: { gt: now } },
                 ],
-                NOT: { userId: Number(user.id) },
+                NOT: { userId: Number(user.userId) },
               },
             },
           });
@@ -150,7 +150,7 @@ export const POST = withAuth(
           });
 
           const priceMap = new Map(
-            prices.map((p) => [p.seatType, p.priceCents]),
+            prices.map((p) => [p.seatType, p.priceCents])
           );
 
           const totalPrice = audiSeats.reduce((sum, seat) => {
@@ -160,11 +160,10 @@ export const POST = withAuth(
             }
             return sum + price;
           }, 0);
-
           const booking = await tx.booking.create({
             data: {
               showId,
-              userId: Number(user.id),
+              userId: Number(user.userId),
               priceCents: totalPrice,
               status: BookingStatus.INITIATED,
               expiresAt: new Date(Date.now() + HOLD_MINUTES * 60 * 1000),
@@ -230,7 +229,7 @@ export const POST = withAuth(
             },
             message: "Success!",
           },
-          { status: 200 },
+          { status: 200 }
         );
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : "Bad request";
@@ -240,5 +239,5 @@ export const POST = withAuth(
       console.log(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  },
+  }
 );

@@ -70,6 +70,9 @@ export const useLogin = () => {
           setLoginError({ general: message });
         } else {
           localStorage.setItem("authToken", data.data.token);
+          localStorage.setItem("expiresIn", data.data.expires);
+          localStorage.setItem("refreshToken", data.data.refreshToken);
+
           getLoggedUser();
           if (data.data.roles.includes("Admin")) {
             router.push("/back_office/dashboard");

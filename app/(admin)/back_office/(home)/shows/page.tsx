@@ -4,13 +4,15 @@ import AddShow from "@/components/admin/AddShow";
 import { useApi } from "@/hooks/useApi";
 import { ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Sofa, Trash2 } from "lucide-react";
 import { useEffect, useRef, useMemo, useState } from "react";
 
 export default function ShowsPage() {
   const { data, loading, call } = useApi<Show[]>();
   const [isShowModalOpen, setIsShowModalOpen] = useState(false);
   const [selectedShowId, setSelectedShowId] = useState<number | null>(null);
+  const [pageSize, setPageSize] = useState(10);
+
   const fetchShows = async () => {
     const token = localStorage.getItem("authToken") || "";
     await call("/api/admin/shows", {
@@ -24,7 +26,14 @@ export default function ShowsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const dateFormatter = (params: ValueFormatterParams) => {
-    return new Date(params.value).toLocaleString();
+    return new Date(params.value).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+  const timeFormatter = (params: ValueFormatterParams) => {
+    return new Date(params.value).toLocaleTimeString();
   };
   const gridRef = useRef<AgGridReact>(null);
   const rowData = data;
@@ -47,10 +56,30 @@ export default function ShowsPage() {
         floatingFilter: true,
       },
       {
-        headerName: "Start Time",
+        headerName: "Show Date",
         field: "startAt",
         flex: 2,
         valueFormatter: dateFormatter,
+        cellClass: "font-semibold text-black",
+        filter: "agDateColumnFilter",
+      },
+      {
+        headerName: "Show Time",
+        field: "startAt",
+        flex: 2,
+        valueFormatter: timeFormatter,
+        cellClass: "font-semibold text-black",
+        filter: "agDateColumnFilter",
+        filterParams: {
+          // defaultOption: "inRange",
+          buttons: ["apply", "reset", "cancel"], // Add the 'reset' button
+          closeOnApply: true,
+        },
+      },
+      {
+        headerName: "Booked Seats",
+        field: "bookedSeatsCount",
+        flex: 1,
         cellClass: "font-semibold text-black",
       },
 
@@ -69,6 +98,13 @@ export default function ShowsPage() {
               title="Edit"
             >
               <Edit className="text-blue-400" size={18} />
+            </button>
+            <button
+              onClick={() => {}}
+              className="p-1 rounded hover:bg-blue-100"
+              title="Booked Seats"
+            >
+              <Sofa className="text-green-400" size={18} />
             </button>
             <button
               onClick={() => {}}
@@ -124,7 +160,10 @@ export default function ShowsPage() {
           autoSizePadding={8}
           rowHeight={40}
           pagination={true}
-          paginationPageSize={10}
+          paginationPageSize={pageSize}
+          onPaginationChanged={(params) => {
+            setPageSize(params.api.paginationGetPageSize());
+          }}
         />
       </div>
       {isShowModalOpen && (

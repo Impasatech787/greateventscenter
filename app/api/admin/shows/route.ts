@@ -5,9 +5,17 @@ import { SeatType } from "@/app/generated/prisma";
 
 export const GET = withAuth(async () => {
   try {
-    const shows = await prisma.show.findMany({});
+    //get list of shows ordered by startAt desc, limit 20, with number of booked seats for each show
+    const shows = await prisma.show.findMany({
+      include: {
+        _count: {
+          select: { bookings: true },
+        },
+      },
+      orderBy: { startAt: "desc" },
+      take: 20,
+    });
 
-    //return movie name and auditorium name along with ids
     const showsWithDetails = await Promise.all(
       shows.map(async (show) => {
         const movie = await prisma.movie.findUnique({
@@ -31,6 +39,7 @@ export const GET = withAuth(async () => {
       auditoriumName: u.auditoriumName,
       startAt: u.startAt,
       auditoriumId: u.auditoriumId,
+      bookedSeatsCount: u._count.bookings,
     }));
     return NextResponse.json({ data, message: "Success!" }, { status: 200 });
   } catch {
