@@ -26,6 +26,7 @@ type BookingRow = booking & {
 };
 
 interface FilterState {
+  bookingId: number | null;
   movieName: string;
   movieId: number | null;
   cinemaName: string;
@@ -45,6 +46,7 @@ export default function BookingsListPage() {
     { id: number; audiName: string; startTime: string }[]
   >([]);
   const [filterState, setFilterState] = useState<FilterState>({
+    bookingId: null,
     movieId: null,
     movieName: "",
     cinemaName: "",
@@ -71,6 +73,7 @@ export default function BookingsListPage() {
       } else {
         const res = await apiRes.json();
         setMovies(res.data);
+        filterShows();
       }
     } catch (error) {
       console.error(error);
@@ -92,13 +95,14 @@ export default function BookingsListPage() {
       } else {
         const res = await apiRes.json();
         setCinemas(res.data);
+        filterShows();
       }
     } catch (error) {
       console.error(error);
     }
   };
 
-  const filterShows = async (filterDate: string) => {
+  const filterShows = async (filterDate?: string) => {
     try {
       const token = localStorage.getItem("authToken") || "";
       const apiRes = await fetch(`/api/admin/shows/filter`, {
@@ -109,7 +113,7 @@ export default function BookingsListPage() {
         body: JSON.stringify({
           movieId: filterState.movieId,
           cinemaId: filterState.cinemaId,
-          showDate: filterDate,
+          showDate: filterDate ? filterDate : filterState.showDate,
         }),
       });
       if (!apiRes.ok) {
@@ -133,6 +137,7 @@ export default function BookingsListPage() {
           authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
+          bookingId: filterState.bookingId,
           movieId: filterState.movieId,
           cinemaId: filterState.cinemaId,
           showId: filterState.showId,
@@ -143,7 +148,6 @@ export default function BookingsListPage() {
         throw new Error("Failed To filter Bookings");
       } else {
         const res = await apiRes.json();
-        console.log(res);
         setBookings(res.data);
       }
     } catch (error) {
@@ -267,7 +271,7 @@ export default function BookingsListPage() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">
@@ -281,7 +285,21 @@ export default function BookingsListPage() {
       <div className="flex flex-col gap-2 py-2">
         <h2 className="text-lg font-semibold">Search Booking</h2>
         <div className="flex flex-col md:flex-row gap-2 items-center">
-          <div className="spcae-y-2 relative group">
+          <div className="space-y-2">
+            <label>Booking ID</label>
+            <Input
+              placeholder="Booking ID"
+              type="number"
+              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              onChange={(e) => {
+                setFilterState((prev) => ({
+                  ...prev,
+                  bookingId: Number(e.target.value),
+                }));
+              }}
+            />
+          </div>
+          <div className="space-y-2 relative group">
             <label>Movie</label>
             <Input
               className=""
@@ -305,6 +323,7 @@ export default function BookingsListPage() {
                     className="border-b p-1 hover:bg-gray-200 cursor-pointer"
                     onMouseDown={(e) => {
                       e.preventDefault();
+                      setShows([]);
                       setFilterState((prev) => ({
                         ...prev,
                         movieId: movie.id,
@@ -320,7 +339,7 @@ export default function BookingsListPage() {
                 ))}
             </div>
           </div>
-          <div className="spcae-y-2 relative group">
+          <div className="space-y-2 relative group">
             <label>Cinema</label>
             <Input
               className=""
