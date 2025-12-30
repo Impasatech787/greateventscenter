@@ -31,8 +31,10 @@ enum PaymentStatus {
   REQUIRES_ACTION
   PROCESSING
   REQUIRES_CAPTURE
-  CANCELED
-  SUCCEEDED
+SUCCEEDED
+  REFUNDED
+  DISPUTED
+  FAILED 
 }
 
 enum BookingStatus {
@@ -71,7 +73,6 @@ model payment {
   stripeEventLastId     String? // last processed event id (optional quick check)
   livemode              Boolean  @default(false)
 
-  // useful fields
   receiptEmail String?
   description  String?
   metadata     Json?
