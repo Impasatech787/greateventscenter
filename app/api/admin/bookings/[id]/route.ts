@@ -9,7 +9,7 @@ export const GET = withAuth(
       if (!Number.isFinite(id)) {
         return NextResponse.json(
           { error: "Invalid booking id" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -24,8 +24,6 @@ export const GET = withAuth(
           createdAt: true,
           priceCents: true,
           invoiceId: true,
-          paymentMethod: true,
-          paymentReferenceId: true,
           user: {
             select: {
               id: true,
@@ -34,6 +32,7 @@ export const GET = withAuth(
               lastName: true,
             },
           },
+          payment: true,
           show: {
             select: {
               id: true,
@@ -83,8 +82,8 @@ export const GET = withAuth(
         expiresAt: booking.expiresAt,
         priceCents: booking.priceCents,
         invoiceId: booking.invoiceId,
-        paymentMethod: booking.paymentMethod,
-        paymentReferenceId: booking.paymentReferenceId,
+        paymentMethod: booking.payment?.provider,
+        paymentReferenceId: booking.payment?.stripePaymentIntentId,
         user: booking.user,
         show: booking.show,
         seats: booking.bookingSeats.map((bs) => ({
@@ -104,5 +103,5 @@ export const GET = withAuth(
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
   },
-  ["Admin"]
+  ["Admin"],
 );
