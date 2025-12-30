@@ -20,9 +20,19 @@ enum BlogStatus {
   ARCHIVED
 }
 
+
 enum SeatType {
   REGULAR
   REGULAR_WHEELCHAIR_ACCESSIBLE
+}
+enum PaymentStatus {
+  REQUIRES_PAYMENT_METHOD
+  REQUIRES_CONFIRMATION
+  REQUIRES_ACTION
+  PROCESSING
+  REQUIRES_CAPTURE
+  CANCELED
+  SUCCEEDED
 }
 
 enum BookingStatus {
@@ -35,6 +45,71 @@ enum BookingStatus {
 enum PaymentMethod {
   CASH
   CARD
+}
+model payment {
+  id Int @id @default(autoincrement())
+
+  provider PaymentMethod @default(CARD)
+  status   PaymentStatus
+  amountCents Int
+  currency    String // keep as String unless you want an enum of allowed currencies
+
+  // Relations
+  userId Int?
+  user   user? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  bookingId Int?    @unique
+  booking   booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+
+  invoiceId Int?
+  invoice   invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  // Stripe identifiers (for webhook-driven inserts/updates)
+  stripePaymentIntentId String @unique
+  stripeChargeId        String? @unique
+  stripeCustomerId      String?
+  stripeEventLastId     String? // last processed event id (optional quick check)
+  livemode              Boolean  @default(false)
+
+  // useful fields
+  receiptEmail String?
+  description  String?
+  metadata     Json?
+
+  paidAt     DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  stripeEvents stripeEvent[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model stripeEvent {
+  id Int @id @default(autoincrement())
+
+  stripeEventId String @unique
+  type          String
+  livemode      Boolean @default(false)
+  created       Int? // stripe event "created" unix seconds
+
+  // processed bookkeeping
+  processedAt DateTime?
+  payload     Json?
+
+  // optional linking for convenience
+  stripePaymentIntentId String?
+
+  paymentId             Int?
+  payment               payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([processedAt])
+  @@index([stripePaymentIntentId])
+  @@index([paymentId])
 }
 
 model blog {
@@ -126,6 +201,7 @@ model user {
   bookings     booking[]
   accounts     account[]
   userRoles    userRole[]
+  payments     payment[]
 }
 
 model account {
@@ -162,8 +238,11 @@ model booking {
   expiresAt          DateTime
   reservedAt         DateTime?
   priceCents         Int
-  paymentReferenceId String?
-  paymentMethod      PaymentMethod?
+  // paymentReferenceId String?
+  paymentId Int?
+  // paymentMethod      PaymentMethod?
+  stripeCheckoutSessionId String? @unique
+  payment   payment? 
   invoiceId          Int?
   invoice            invoice?       @relation(fields: [invoiceId], references: [id])
   userId             Int?
@@ -180,6 +259,7 @@ model invoice {
   detailJson    String
   remarks       String
   bookings      booking[]
+  payments      payment[]
 }
 
 model bookingSeat {
@@ -200,6 +280,7 @@ model banner {
   buttonText  String
   link        String
 }
+
 
 model seatPrice {
   id         Int      @id @default(autoincrement())
