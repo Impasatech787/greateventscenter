@@ -215,8 +215,11 @@ export const POST = withAuth(
         await prisma.booking.update({
           where: { id: booking.id },
           data: {
-            paymentReferenceId: stripeSession.id,
+            stripeCheckoutSessionId: stripeSession.id,
           },
+          // data: {
+          //   paymentReferenceId: stripeSession.id,
+          // },
         });
 
         return NextResponse.json(
