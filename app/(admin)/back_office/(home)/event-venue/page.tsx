@@ -1,27 +1,27 @@
 "use client";
 import { cinema as EventVenue } from "@/app/generated/prisma";
-import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
 import { Edit, Trash2 } from "lucide-react";
 import AddEventVenueModal from "@/components/admin/AddEventVenueModal";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 export default function EventHallPage() {
-  const { data, loading, call } = useApi<EventVenue[]>();
+  const [venue, setVenue] = useState<EventVenue[]>();
   const [isAddVenueOpen, setIsAddVenueOpen] = useState<boolean>(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null);
   const [selectedVenueName, setSelectedVenueName] = useState<string>("");
 
   const fetchVenues = async () => {
-    const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/cinemas", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    const res =
+      await apiClient.get<ApiResponse<EventVenue[]>>("/admin/cinemas");
+    if (res) {
+      setVenue(res.data.data);
+    }
   };
 
   useEffect(() => {
@@ -31,28 +31,17 @@ export default function EventHallPage() {
 
   const handleDeleteVenue = async () => {
     if (!selectedVenueId) return;
-
-    const token = localStorage.getItem("authToken") || "";
-    const response = await fetch(`/api/admin/cinemas/${selectedVenueId}`, {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to delete venue");
+    const res = await apiClient.delete(`/admin/cinemas/${selectedVenueId}`);
+    if (res) {
+      setIsDeleteOpen(false);
+      setSelectedVenueId(null);
+      setSelectedVenueName("");
+      await fetchVenues();
     }
-
-    setIsDeleteOpen(false);
-    setSelectedVenueId(null);
-    setSelectedVenueName("");
-    await fetchVenues();
   };
 
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = data;
+  const rowData = venue;
   const columnDefs = useMemo(
     () => [
       {
@@ -100,7 +89,7 @@ export default function EventHallPage() {
         filter: false,
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -136,7 +125,6 @@ export default function EventHallPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

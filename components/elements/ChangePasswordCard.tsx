@@ -1,5 +1,7 @@
 "use client";
 
+import apiClient from "@/lib/axios";
+import { ApiError } from "@/types/ApiError";
 import { useState } from "react";
 
 type PasswordStatus = {
@@ -21,50 +23,56 @@ const ChangePasswordCard = () => {
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
-  const submitPasswordChange = async (event: React.FormEvent<HTMLFormElement>) => {
+  const submitPasswordChange = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
     event.preventDefault();
     setPasswordStatus({ type: "idle", message: "" });
 
     if (!passwordForm.currentPassword || !passwordForm.newPassword) {
-      setPasswordStatus({ type: "error", message: "Please fill in all password fields." });
+      setPasswordStatus({
+        type: "error",
+        message: "Please fill in all password fields.",
+      });
       return;
     }
     if (passwordForm.newPassword.length < 8) {
-      setPasswordStatus({ type: "error", message: "New password must be at least 8 characters." });
+      setPasswordStatus({
+        type: "error",
+        message: "New password must be at least 8 characters.",
+      });
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus({ type: "error", message: "New password and confirmation do not match." });
+      setPasswordStatus({
+        type: "error",
+        message: "New password and confirmation do not match.",
+      });
       return;
     }
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      setPasswordStatus({ type: "error", message: "Please sign in to change your password." });
+      setPasswordStatus({
+        type: "error",
+        message: "Please sign in to change your password.",
+      });
       return;
     }
-
     setIsUpdatingPassword(true);
     try {
-      const res = await fetch("/api/profile/password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        }),
+      await apiClient.post(`/profile/password`, {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || "Unable to update password.");
-      }
-      setPasswordStatus({ type: "success", message: "Password updated successfully." });
+      setPasswordStatus({
+        type: "success",
+        message: "Password updated successfully.",
+      });
       setPasswordForm(initialFormState);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to update password.";
+      const message =
+        err instanceof ApiError ? err.message : "Unable to update password.";
       setPasswordStatus({ type: "error", message });
     } finally {
       setIsUpdatingPassword(false);
@@ -73,8 +81,12 @@ const ChangePasswordCard = () => {
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/30">
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Security</p>
-      <h3 className="mt-2 text-2xl font-semibold text-slate-900">Change password</h3>
+      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+        Security
+      </p>
+      <h3 className="mt-2 text-2xl font-semibold text-slate-900">
+        Change password
+      </h3>
       <p className="mt-2 text-sm text-slate-500">
         Update your password regularly to keep your account secure.
       </p>
@@ -87,7 +99,10 @@ const ChangePasswordCard = () => {
           className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none"
           value={passwordForm.currentPassword}
           onChange={(event) =>
-            setPasswordForm((prev) => ({ ...prev, currentPassword: event.target.value }))
+            setPasswordForm((prev) => ({
+              ...prev,
+              currentPassword: event.target.value,
+            }))
           }
         />
         <input
@@ -98,7 +113,10 @@ const ChangePasswordCard = () => {
           className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none"
           value={passwordForm.newPassword}
           onChange={(event) =>
-            setPasswordForm((prev) => ({ ...prev, newPassword: event.target.value }))
+            setPasswordForm((prev) => ({
+              ...prev,
+              newPassword: event.target.value,
+            }))
           }
         />
         <input
@@ -109,7 +127,10 @@ const ChangePasswordCard = () => {
           className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none"
           value={passwordForm.confirmPassword}
           onChange={(event) =>
-            setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))
+            setPasswordForm((prev) => ({
+              ...prev,
+              confirmPassword: event.target.value,
+            }))
           }
         />
         <button

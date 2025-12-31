@@ -1,6 +1,5 @@
 "use client";
 import { movie as Movie } from "@/app/generated/prisma";
-import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
@@ -8,9 +7,11 @@ import { Edit, Image as ImageIcon, Trash2 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import AddMovieModal from "@/components/admin/AddMovie";
 import AddMoviePoster from "@/components/admin/AddMoviePoster";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 export default function MoviesPage() {
-  const { data, loading, call } = useApi<Movie[]>();
+  const [movies, setMovies] = useState<Movie[]>();
   const [isAddMovieOpen, setIsAddMovieOpen] = useState<boolean>(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedMovieId, setSelectedMovieId] = useState<number | null>(null);
@@ -19,12 +20,8 @@ export default function MoviesPage() {
   const [moviePosterUrl, setMoviePosterUrl] = useState<string>("");
 
   const fetchMovies = async () => {
-    const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/movies", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await apiClient.get<ApiResponse<Movie[]>>("/admin/movies");
+    setMovies(res.data.data);
   };
 
   useEffect(() => {
@@ -34,20 +31,7 @@ export default function MoviesPage() {
 
   const handleDeleteMovie = async () => {
     if (!selectedMovieId) return;
-
-    const token = localStorage.getItem("authToken") || "";
-    const response = await fetch(`/api/admin/movies/${selectedMovieId}`, {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to delete venue");
-    }
-
+    await apiClient.delete(`/admin/movies/${selectedMovieId}`);
     setIsDeleteOpen(false);
     setSelectedMovieId(null);
     setSelectedMovieName("");
@@ -55,7 +39,7 @@ export default function MoviesPage() {
   };
 
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = data;
+  const rowData = movies;
   const columnDefs = useMemo(
     () => [
       {
@@ -175,7 +159,6 @@ export default function MoviesPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

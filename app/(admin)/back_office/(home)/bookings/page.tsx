@@ -8,11 +8,14 @@ import {
   ValueGetterParams,
 } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 import { booking } from "@/app/generated/prisma";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
+import { Movie } from "@/app/(user)/movies/page";
 
 type BookingRow = booking & {
   user?: {
@@ -61,18 +64,12 @@ export default function BookingsListPage() {
   }, []);
 
   const filterMovies = async (movieSearchText: string) => {
-    const token = localStorage.getItem("authToken") || "";
     try {
-      const apiRes = await fetch(`/api/admin/movies?name=${movieSearchText}`, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      if (!apiRes.ok) {
-        throw new Error("Failed To filter Movie");
-      } else {
-        const res = await apiRes.json();
-        setMovies(res.data);
+      const res = await apiClient.get<ApiResponse<Movie[]>>(
+        `/admin/movies?name=${movieSearchText}`,
+      );
+      if (res) {
+        setMovies(res.data.data);
         filterShows();
       }
     } catch (error) {
@@ -80,21 +77,12 @@ export default function BookingsListPage() {
     }
   };
   const filterCinema = async (cinemaSearchText: string) => {
-    const token = localStorage.getItem("authToken") || "";
     try {
-      const apiRes = await fetch(
-        `/api/admin/cinemas?name=${cinemaSearchText}`,
-        {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (!apiRes.ok) {
-        throw new Error("Failed To filter Cinemas");
-      } else {
-        const res = await apiRes.json();
-        setCinemas(res.data);
+      const res = await apiClient.get<
+        ApiResponse<{ name: string; id: number }[]>
+      >(`/admin/cinemas?name=${cinemaSearchText}`);
+      if (res) {
+        setCinemas(res.data.data);
         filterShows();
       }
     } catch (error) {
@@ -104,23 +92,15 @@ export default function BookingsListPage() {
 
   const filterShows = async (filterDate?: string) => {
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const apiRes = await fetch(`/api/admin/shows/filter`, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          movieId: filterState.movieId,
-          cinemaId: filterState.cinemaId,
-          showDate: filterDate ? filterDate : filterState.showDate,
-        }),
+      const res = await apiClient.post<
+        ApiResponse<{ id: number; audiName: string; startTime: string }[]>
+      >(`/admin/shows/filter`, {
+        movieId: filterState.movieId,
+        cinemaId: filterState.cinemaId,
+        showDate: filterDate ? filterDate : filterState.showDate,
       });
-      if (!apiRes.ok) {
-        throw new Error("Failed To filter Shows");
-      } else {
-        const res = await apiRes.json();
-        setShows(res.data);
+      if (res) {
+        setShows(res.data.data);
       }
     } catch (error) {
       console.error(error);
@@ -128,27 +108,20 @@ export default function BookingsListPage() {
   };
 
   const filterBooking = async () => {
-    const token = localStorage.getItem("authToken") || "";
     try {
       setIsLoading(true);
-      const apiRes = await fetch(`/api/admin/bookings/filter`, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const res = await apiClient.post<ApiResponse<BookingRow[]>>(
+        `/admin/bookings/filter`,
+        {
           bookingId: filterState.bookingId,
           movieId: filterState.movieId,
           cinemaId: filterState.cinemaId,
           showId: filterState.showId,
           showDate: filterState.showDate,
-        }),
-      });
-      if (!apiRes.ok) {
-        throw new Error("Failed To filter Bookings");
-      } else {
-        const res = await apiRes.json();
-        setBookings(res.data);
+        },
+      );
+      if (res) {
+        setBookings(res.data.data);
       }
     } catch (error) {
       console.error(error);

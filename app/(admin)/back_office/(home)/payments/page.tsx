@@ -12,6 +12,8 @@ import { Eye } from "lucide-react";
 import SelectFilter from "@/components/table/SelectFilter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 type Payment = {
   id: number;
@@ -59,18 +61,25 @@ export default function PaymentsListPage() {
       if (filterState.userEmail)
         params.append("userEmail", filterState.userEmail);
       if (filterState.paidDate) params.append("paidDate", filterState.paidDate);
-      const token = localStorage.getItem("authToken") || "";
-      const apiRes = await fetch(`/api/admin/payments?${params.toString()}`, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      if (!apiRes.ok) {
-        throw new Error("Failed to Fetch Payments");
+
+      const res = await apiClient.get<ApiResponse<Payment[]>>(
+        `/admin/payments?${params.toString()}`,
+      );
+      if (res) {
+        setPayments(res.data.data);
       }
-      const res = await apiRes.json();
-      console.log(res);
-      setPayments(res.data);
+      // const token = localStorage.getItem("authToken") || "";
+      // const apiRes = await fetch(`/api/admin/payments?${params.toString()}`, {
+      //   headers: {
+      //     authorization: `Bearer ${token}`,
+      //   },
+      // });
+      // if (!apiRes.ok) {
+      //   throw new Error("Failed to Fetch Payments");
+      // }
+      // const res = await apiRes.json();
+      // console.log(res);
+      // setPayments(res.data);
     } catch (error) {
       console.error("Error", error);
     } finally {

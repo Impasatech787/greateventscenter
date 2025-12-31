@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { X } from "lucide-react";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import apiClient from "@/lib/axios";
 
 interface AddMovieProps {
   onClose: () => void;
@@ -102,38 +103,27 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
           ...movieValue,
           releaseDate: new Date(movieValue.releaseDate).toISOString(),
         };
-        const token = localStorage.getItem("authToken") || "";
-        const res = await fetch("/api/admin/movies", {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+        await apiClient.post(`/admin/movies`, {
+          payload,
         });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Failed to Submit Movie");
-        } else {
-          setSuccessMessage(`Movie created successfully!`);
-          setTimeout(() => {
-            setFormError(null);
-            setMovieValue({
-              title: "",
-              description: "",
-              releaseDate: "",
-              genres: "",
-              language: "",
-              trailerUrl: "",
-              durationMin: "",
-              director: "",
-              casts: "",
-              rating: "",
-            });
-            onClose();
-            onAdd();
-          }, 300);
-        }
+        setSuccessMessage(`Movie created successfully!`);
+        setTimeout(() => {
+          setFormError(null);
+          setMovieValue({
+            title: "",
+            description: "",
+            releaseDate: "",
+            genres: "",
+            language: "",
+            trailerUrl: "",
+            durationMin: "",
+            director: "",
+            casts: "",
+            rating: "",
+          });
+          onClose();
+          onAdd();
+        }, 300);
       } catch (error) {
         console.error(error);
         setApiError(`${error}`);

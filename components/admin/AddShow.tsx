@@ -12,6 +12,8 @@ import {
 import { X } from "lucide-react";
 import { Input } from "../ui/input";
 import { show as Show } from "@/app/generated/prisma";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 interface ShowProps {
   onClose: () => void;
   onAdd: () => void;
@@ -59,17 +61,8 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
     (Show & { seatPrices: ShowPricing[] }) | undefined
   > => {
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch(`/api/admin/shows/${showId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch show details");
-      }
-      const data = await res.json();
-      return data.data;
+      const res = await apiClient.get(`/admin/shows/${showId}`);
+      return res.data.data;
     } catch (error) {
       console.error("Error fetching show details:", error);
       return undefined;
@@ -79,17 +72,8 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
   const fetchMovies = async (): Promise<Movie[]> => {
     // Fetch movies logic here
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch("/api/admin/movies", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch movies");
-      }
-      const data = await res.json();
-      return data.data;
+      const res = await apiClient.get<ApiResponse<Movie[]>>(`/admin/movies`);
+      return res.data.data;
     } catch (error) {
       console.error("Error fetching movies:", error);
       return [];
@@ -98,17 +82,9 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
   const fetchAuditoriums = async (): Promise<Auditorium[]> => {
     // Fetch auditoriums logic here
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch("/api/admin/auditoriums", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch auditoriums");
-      }
-      const data = await res.json();
-      return data.data;
+      const res =
+        await apiClient.get<ApiResponse<Auditorium[]>>(`/admin/auditoriums`);
+      return res.data.data;
     } catch (error) {
       console.error("Error fetching auditoriums:", error);
       return [];
@@ -122,7 +98,7 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
         if (data) {
           const utcStart = new Date(data.startAt);
           const adjustedDate = new Date(
-            utcStart.getTime() - utcStart.getTimezoneOffset() * 60000
+            utcStart.getTime() - utcStart.getTimezoneOffset() * 60000,
           );
           console.log(data.seatPrices);
           setForm({
@@ -139,25 +115,15 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
       ([movies, auditoriums]) => {
         setMoviesList(movies);
         setAuditoriumsList(auditoriums);
-      }
+      },
     );
   }, []);
 
   const onAuditoriumSelect = async (value: string) => {
     //fetch auditorium to get seat types as we need it for pricing setup
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch(`/api/admin/auditoriums/${value}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed to fetch auditorium details");
-      }
-      const data = await res.json();
-      setShowSeatingTypes(data.data.seatTypes);
-      // You can use the data to update state or perform other actions
+      const res = await apiClient.get(`/admin/auditoriums/${value}`);
+      return res.data.data.seatTypes;
     } catch (error) {
       console.error("Error fetching auditorium details:", error);
     }
@@ -205,27 +171,12 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
       return;
     }
     try {
-      const token = localStorage.getItem("authToken") || "";
-      console.log("Submitting show with data:", form);
-      const res = await fetch(`/api/admin/shows${showId ? `/${showId}` : ""}`, {
-        method: showId ? "PATCH" : "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          movieId: parseInt(form.movieId),
-          auditoriumId: parseInt(form.auditoriumId),
-          startAt: new Date(form.startAt).toISOString(),
-          seatPrices: form.showPricing || [],
-        }),
+      await apiClient.post(`/admin/shows${showId ? `/${showId}` : ``}`, {
+        movieId: parseInt(form.movieId),
+        auditoriumId: parseInt(form.auditoriumId),
+        startAt: new Date(form.startAt).toISOString(),
+        seatPrices: form.showPricing || [],
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        setFormError({ general: errorData.error || "Failed to add show" });
-        setLoading(false);
-        return;
-      }
       setSuccessMessage("Show added successfully");
       setLoading(false);
       onAdd();
@@ -360,7 +311,7 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
                     setForm((prev) => {
                       const existingPricing = prev.showPricing || [];
                       const updatedPricing = existingPricing.filter(
-                        (sp) => sp.seatType !== seatType
+                        (sp) => sp.seatType !== seatType,
                       );
                       updatedPricing.push({ seatType, priceCents });
                       return { ...prev, showPricing: updatedPricing };

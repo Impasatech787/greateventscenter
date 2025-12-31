@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 interface AddAudiProps {
   onClose: () => void;
@@ -37,18 +39,10 @@ const AddAudiModal: React.FC<AddAudiProps> = ({ onClose, onAdd, audiId }) => {
   useEffect(() => {
     const fetchVenues = async () => {
       try {
-        const token = localStorage.getItem("authToken") || "";
-
-        const res = await fetch("/api/admin/cinemas", {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) {
-          throw new Error("Faild to get Venues List");
+        const res = await apiClient.get<ApiResponse<Venue[]>>(`/admin/cinemas`);
+        if (res) {
+          setVenuesList(res.data.data);
         }
-        const data = await res.json();
-        setVenuesList(data.data);
       } catch (error) {
         console.error("Error fetching venues:", error);
       }
@@ -77,27 +71,20 @@ const AddAudiModal: React.FC<AddAudiProps> = ({ onClose, onAdd, audiId }) => {
     if (validateForm()) {
       setLoading(true);
       try {
-        const token = localStorage.getItem("authToken") || "";
-        const res = await fetch("/api/admin/auditoriums", {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name, cinemaId: Number(venue) }),
+        const res = await apiClient.post(`/admin/auditoriums`, {
+          name,
+          cinemaId: Number(venue),
         });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Failed to Submit Auditorium");
+        if (res) {
+          setSuccessMessage(`Auditorium created successfully!`);
+          setTimeout(() => {
+            setName("");
+            setVenue("");
+            setFormError(null);
+            onClose();
+            onAdd();
+          }, 300);
         }
-        setSuccessMessage(`Auditorium created successfully!`);
-        setTimeout(() => {
-          setName("");
-          setVenue("");
-          setFormError(null);
-          onClose();
-          onAdd();
-        }, 300);
       } catch (error) {
         console.error(error);
         setApiError(`${error}`);
