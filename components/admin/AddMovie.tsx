@@ -103,9 +103,7 @@ const AddMovieModal: React.FC<AddMovieProps> = ({
           ...movieValue,
           releaseDate: new Date(movieValue.releaseDate).toISOString(),
         };
-        await apiClient.post(`/admin/movies`, {
-          payload,
-        });
+        await apiClient.post(`/admin/movies`, payload);
         setSuccessMessage(`Movie created successfully!`);
         setTimeout(() => {
           setFormError(null);

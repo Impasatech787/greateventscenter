@@ -50,15 +50,6 @@ const ChangePasswordCard = () => {
       });
       return;
     }
-
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      setPasswordStatus({
-        type: "error",
-        message: "Please sign in to change your password.",
-      });
-      return;
-    }
     setIsUpdatingPassword(true);
     try {
       await apiClient.post(`/profile/password`, {

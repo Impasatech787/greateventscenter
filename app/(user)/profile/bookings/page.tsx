@@ -2,6 +2,9 @@
 
 import { BookingStatus } from "@/app/generated/prisma";
 import { Separator } from "@/components/ui/separator";
+import apiClient from "@/lib/axios";
+import { ApiError } from "@/types/ApiError";
+import { ApiResponse } from "@/types/apiResponse";
 import { useEffect, useMemo, useState } from "react";
 
 interface BookSeat {
@@ -70,15 +73,11 @@ function BookingCard({ booking }: { booking: Booking }) {
   const downloadTicket = async (bookingId: number) => {
     setIsDownloading(true);
     try {
-      const token = localStorage.getItem("authToken");
-      const res = await fetch(`/api/bookings/download-ticket/${bookingId}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        throw new Error(`Failed to download ticket (${res.status})`);
-      }
-      const blob = await res.blob();
+      const res = await apiClient.get(
+        `/bookings/download-ticket/${bookingId}`,
+        { responseType: "blob" },
+      );
+      const blob = (await res.data) as Blob;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -238,9 +237,21 @@ export default function MyBookings() {
 
   const tabs = useMemo(
     () => [
-      { key: "upcoming" as const, label: "Upcoming", count: groupedBookings.upcoming.length },
-      { key: "past" as const, label: "Past", count: groupedBookings.past.length },
-      { key: "cancelled" as const, label: "Cancelled", count: groupedBookings.cancelled.length },
+      {
+        key: "upcoming" as const,
+        label: "Upcoming",
+        count: groupedBookings.upcoming.length,
+      },
+      {
+        key: "past" as const,
+        label: "Past",
+        count: groupedBookings.past.length,
+      },
+      {
+        key: "cancelled" as const,
+        label: "Cancelled",
+        count: groupedBookings.cancelled.length,
+      },
     ],
     [groupedBookings],
   );
@@ -265,28 +276,13 @@ export default function MyBookings() {
       setErrorMsg(null);
 
       try {
-        const token = localStorage.getItem("authToken");
-        if (!token) throw new Error("No auth token found. Please login again.");
+        const res = await apiClient.get<ApiResponse<Booking[]>>("/bookings");
 
-        const res = await fetch("/api/bookings", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          throw new Error(text || `Failed to get bookings (${res.status})`);
-        }
-
-        const json = await res.json();
-        const bookings = json.data;
-
-        if (alive) setBookingLists(bookings);
+        if (alive) setBookingLists(res.data.data);
       } catch (err: unknown) {
         if (alive)
           setErrorMsg(
-            err instanceof Error ? err.message : "Something went wrong",
+            err instanceof ApiError ? err.message : "Something went wrong",
           );
       } finally {
         if (alive) setIsLoading(false);

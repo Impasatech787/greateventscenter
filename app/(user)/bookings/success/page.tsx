@@ -19,6 +19,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import apiClient from "@/lib/axios";
+import { ApiError } from "@/types/ApiError";
 
 type VerifyState =
   | { status: "idle" }
@@ -68,32 +70,12 @@ const PaymentSuccessPage = () => {
 
     setState({ status: "loading" });
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const response = await fetch("/api/bookings/verify-booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          paymentSessionId: sessionId,
-          bookingId: bookingId,
-        }),
+      const res = await apiClient.post(`/bookings/verify-booking`, {
+        paymentSessionId: sessionId,
+        bookingId: bookingId,
       });
 
-      const data: unknown = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        const message =
-          typeof (data as { error?: unknown })?.error === "string"
-            ? (data as { error: string }).error
-            : "Booking verification failed.";
-        if (response.status == 409) {
-          setState({ status: "aleady_verified", message });
-          return;
-        }
-        setState({ status: "error", message });
-        return;
-      }
+      const data = res.data.data;
 
       const apiData = (data as { data?: unknown })?.data;
       const result =
@@ -126,8 +108,10 @@ const PaymentSuccessPage = () => {
           : undefined;
 
       setState({ status: "success", result });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Server error";
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof ApiError ? error.message : "Server error";
       setState({ status: "error", message });
     }
   }, [bookingId, sessionId]);

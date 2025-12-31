@@ -123,7 +123,7 @@ const AddShow: React.FC<ShowProps> = ({ onClose, onAdd, showId }) => {
     //fetch auditorium to get seat types as we need it for pricing setup
     try {
       const res = await apiClient.get(`/admin/auditoriums/${value}`);
-      return res.data.data.seatTypes;
+      setShowSeatingTypes(res.data.data.seatTypes);
     } catch (error) {
       console.error("Error fetching auditorium details:", error);
     }

@@ -68,18 +68,6 @@ export default function PaymentsListPage() {
       if (res) {
         setPayments(res.data.data);
       }
-      // const token = localStorage.getItem("authToken") || "";
-      // const apiRes = await fetch(`/api/admin/payments?${params.toString()}`, {
-      //   headers: {
-      //     authorization: `Bearer ${token}`,
-      //   },
-      // });
-      // if (!apiRes.ok) {
-      //   throw new Error("Failed to Fetch Payments");
-      // }
-      // const res = await apiRes.json();
-      // console.log(res);
-      // setPayments(res.data);
     } catch (error) {
       console.error("Error", error);
     } finally {
