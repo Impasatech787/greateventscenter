@@ -96,6 +96,7 @@ export async function POST(req: Request) {
     );
     return response;
   } catch (error) {
+    console.error("Sign-in error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

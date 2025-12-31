@@ -21,6 +21,8 @@ interface Booking {
   status: BookingStatus;
 }
 
+type BookingTabKey = "upcoming" | "past" | "cancelled";
+
 function formatDT(value?: string) {
   if (!value) return "—";
   const d = new Date(value);
@@ -59,6 +61,12 @@ function SeatChip({ seat }: { seat: BookSeat }) {
 function BookingCard({ booking }: { booking: Booking }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const reserved = booking.reservedAt;
+  const statusLabel =
+    booking.status === BookingStatus.CANCELLED
+      ? "Cancelled"
+      : booking.status === BookingStatus.EXPIRED
+        ? "Expired"
+        : "Failed";
   const downloadTicket = async (bookingId: number) => {
     setIsDownloading(true);
     try {
@@ -163,7 +171,7 @@ function BookingCard({ booking }: { booking: Booking }) {
                 <div
                   className={` rounded-xl bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600`}
                 >
-                  Failed
+                  {statusLabel}
                 </div>
               )}
               {booking.status == BookingStatus.BOOKED && (
@@ -193,6 +201,56 @@ export default function MyBookings() {
   const [bookingLists, setBookingLists] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<BookingTabKey>("upcoming");
+
+  const groupedBookings = useMemo<Record<BookingTabKey, Booking[]>>(() => {
+    const upcoming: Booking[] = [];
+    const past: Booking[] = [];
+    const cancelled: Booking[] = [];
+    const now = new Date();
+
+    bookingLists.forEach((booking) => {
+      if (booking.status === BookingStatus.BOOKED) {
+        const startAt = new Date(booking.startAt);
+        const startTs = startAt.getTime();
+        const nowTs = now.getTime();
+        if (!Number.isNaN(startTs) && startTs >= nowTs) {
+          upcoming.push(booking);
+        } else {
+          past.push(booking);
+        }
+      } else {
+        cancelled.push(booking);
+      }
+    });
+
+    const byStartAsc = (a: Booking, b: Booking) =>
+      new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+    const byStartDesc = (a: Booking, b: Booking) =>
+      new Date(b.startAt).getTime() - new Date(a.startAt).getTime();
+
+    upcoming.sort(byStartAsc);
+    past.sort(byStartDesc);
+    cancelled.sort(byStartDesc);
+
+    return { upcoming, past, cancelled };
+  }, [bookingLists]);
+
+  const tabs = useMemo(
+    () => [
+      { key: "upcoming" as const, label: "Upcoming", count: groupedBookings.upcoming.length },
+      { key: "past" as const, label: "Past", count: groupedBookings.past.length },
+      { key: "cancelled" as const, label: "Cancelled", count: groupedBookings.cancelled.length },
+    ],
+    [groupedBookings],
+  );
+
+  const activeBookings = groupedBookings[activeTab];
+  const emptyMessages: Record<BookingTabKey, string> = {
+    upcoming: "No upcoming bookings.",
+    past: "No past bookings.",
+    cancelled: "No cancelled bookings.",
+  };
 
   const totalSpent = useMemo(
     () => bookingLists.reduce((sum, b) => sum + (b.totalPrice || 0) / 100, 0),
@@ -309,9 +367,41 @@ export default function MyBookings() {
           {/* List */}
           {!isLoading && !errorMsg && bookingLists.length > 0 && (
             <div className="grid gap-4">
-              {bookingLists.map((b) => (
-                <BookingCard key={b.id} booking={b} />
-              ))}
+              <div className="flex flex-wrap gap-2 rounded-2xl border bg-gray-50 p-1">
+                {tabs.map((tab) => {
+                  const isActive = tab.key === activeTab;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      className={
+                        "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm transition " +
+                        (isActive
+                          ? "bg-white font-semibold text-gray-900 shadow-sm"
+                          : "font-medium text-gray-600 hover:text-gray-900")
+                      }
+                      onClick={() => setActiveTab(tab.key)}
+                    >
+                      <span>{tab.label}</span>
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700">
+                        {tab.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {activeBookings.length === 0 ? (
+                <div className="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+                  {emptyMessages[activeTab]}
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {activeBookings.map((b) => (
+                    <BookingCard key={b.id} booking={b} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
