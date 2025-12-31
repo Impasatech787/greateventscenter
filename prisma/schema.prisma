@@ -203,6 +203,7 @@ model user {
   accounts     account[]
   userRoles    userRole[]
   payments     payment[]
+  sessions     Session[]
 }
 
 model account {
@@ -291,4 +292,18 @@ model seatPrice {
   priceCents Int
 
   @@unique([showId, seatType])
+}
+
+model Session {
+  id               String   @id @default(cuid())
+  sid              String   @unique
+  userId           Int
+  refreshTokenHash String
+  revoked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
