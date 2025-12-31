@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type VerificationState = "idle" | "loading" | "success" | "error";
 
-export default function VerifyEmailPage() {
+const VerifyEmailPage = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const [state, setState] = useState<VerificationState>("idle");
@@ -21,7 +21,9 @@ export default function VerifyEmailPage() {
       }
       setState("loading");
       try {
-        const res = await fetch(`/api/auth/verify-email?token=${encodeURIComponent(token)}`);
+        const res = await fetch(
+          `/api/auth/verify-email?token=${encodeURIComponent(token)}`,
+        );
         const data = await res.json().catch(() => null);
         if (!res.ok) {
           const errorMessage =
@@ -57,7 +59,8 @@ export default function VerifyEmailPage() {
             Verify Email
           </h1>
           <p className="mt-3 max-w-xl text-base text-slate-200">
-            We are confirming your email address. You can sign in once verification is complete.
+            We are confirming your email address. You can sign in once
+            verification is complete.
           </p>
         </div>
       </section>
@@ -91,5 +94,12 @@ export default function VerifyEmailPage() {
         </div>
       </section>
     </main>
+  );
+};
+export default function VerifyEmail() {
+  return (
+    <Suspense>
+      <VerifyEmailPage />
+    </Suspense>
   );
 }

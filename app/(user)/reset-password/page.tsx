@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 type StatusType = "idle" | "loading" | "success" | "error";
 
-export default function ResetPasswordPage() {
+const PasswordResetComponent = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const [newPassword, setNewPassword] = useState("");
@@ -126,10 +126,11 @@ export default function ResetPasswordPage() {
 
             {status !== "idle" && (
               <div
-                className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${status === "success"
+                className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
+                  status === "success"
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                     : "border-rose-200 bg-rose-50 text-rose-700"
-                  }`}
+                }`}
               >
                 {message}
               </div>
@@ -153,5 +154,13 @@ export default function ResetPasswordPage() {
         </div>
       </section>
     </main>
+  );
+};
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense>
+      <PasswordResetComponent />
+    </Suspense>
   );
 }
