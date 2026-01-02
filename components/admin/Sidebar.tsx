@@ -52,6 +52,11 @@ const menuItems: SideBarMenu[] = [
     link: "/back_office/dashboard",
   },
   {
+    title: "Events",
+    icon: <Calendar className="w-5 h-5" />,
+    link: "/back_office/dashboard/events",
+  },
+  {
     title: "Event Hall Management",
     icon: <Building2 className="w-5 h-5" />,
     children: [

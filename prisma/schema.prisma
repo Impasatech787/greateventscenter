@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -49,38 +43,29 @@ enum PaymentMethod {
   CARD
 }
 model payment {
-  id Int @id @default(autoincrement())
-
-  provider PaymentMethod @default(CARD)
-  status   PaymentStatus
-  amountCents Int
-  currency    String // keep as String unless you want an enum of allowed currencies
-
-  // Relations
-  userId Int?
-  user   user? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  bookingId Int?    @unique
-  booking   booking? @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-
-  invoiceId Int?
-  invoice   invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-
-  // Stripe identifiers (for webhook-driven inserts/updates)
-  stripePaymentIntentId String @unique
-  stripeChargeId        String? @unique
+  id                    Int           @id @default(autoincrement())
+  provider              PaymentMethod @default(CARD)
+  status                PaymentStatus
+  amountCents           Int
+  currency              String
+  userId                Int?
+  bookingId             Int?          @unique
+  invoiceId             Int?
+  stripePaymentIntentId String        @unique
+  stripeChargeId        String?       @unique
   stripeCustomerId      String?
-  stripeEventLastId     String? // last processed event id (optional quick check)
-  livemode              Boolean  @default(false)
-
-  receiptEmail String?
-  description  String?
-  metadata     Json?
-
-  paidAt     DateTime?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  stripeEvents stripeEvent[]
+  stripeEventLastId     String?
+  livemode              Boolean       @default(false)
+  receiptEmail          String?
+  description           String?
+  metadata              Json?
+  paidAt                DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  booking               booking?      @relation(fields: [bookingId], references: [id])
+  invoice               invoice?      @relation(fields: [invoiceId], references: [id])
+  user                  user?         @relation(fields: [userId], references: [id])
+  stripeEvents          stripeEvent[]
 
   @@index([userId])
   @@index([status])
@@ -88,24 +73,17 @@ model payment {
 }
 
 model stripeEvent {
-  id Int @id @default(autoincrement())
-
-  stripeEventId String @unique
-  type          String
-  livemode      Boolean @default(false)
-  created       Int? // stripe event "created" unix seconds
-
-  // processed bookkeeping
-  processedAt DateTime?
-  payload     Json?
-
-  // optional linking for convenience
+  id                    Int       @id @default(autoincrement())
+  stripeEventId         String    @unique
+  type                  String
+  livemode              Boolean   @default(false)
+  created               Int?
+  processedAt           DateTime?
+  payload               Json?
   stripePaymentIntentId String?
-
   paymentId             Int?
-  payment               payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
+  createdAt             DateTime  @default(now())
+  payment               payment?  @relation(fields: [paymentId], references: [id])
 
   @@index([type])
   @@index([processedAt])
@@ -114,18 +92,16 @@ model stripeEvent {
 }
 
 model blog {
-  id     Int    @id @default(autoincrement())
-  title  String
-  slug   String @unique
-  author String
-
-  status        BlogStatus @default(DRAFT)
+  id            Int        @id @default(autoincrement())
+  title         String
+  slug          String     @unique
+  author        String
   publishedDate DateTime?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
-
-  content       String  @db.Text
+  content       String
   featuredMedia String?
+  status        BlogStatus @default(DRAFT)
 }
 
 model cinema {
@@ -133,13 +109,35 @@ model cinema {
   name      String
   location  String?
   auditoria auditorium[]
+  events    event[]
+}
+
+model event {
+  id           Int            @id @default(autoincrement())
+  title        String
+  cinemaId     Int
+  cinema       cinema         @relation(fields: [cinemaId], references: [id])
+  date         DateTime
+  startTime    String
+  endTime      String
+  category     String
+  status       String
+  capacity     Int?
+  priceCents   Int?
+  thumbnailUrl String?
+  description  String?
+  bookings     eventBooking[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([cinemaId])
 }
 
 model auditorium {
   id       Int    @id @default(autoincrement())
   name     String
-  cinema   cinema @relation(fields: [cinemaId], references: [id])
   cinemaId Int
+  cinema   cinema @relation(fields: [cinemaId], references: [id])
   seats    seat[]
   shows    show[]
 }
@@ -148,109 +146,124 @@ model seat {
   id           Int           @id @default(autoincrement())
   row          String
   number       String
-  auditorium   auditorium    @relation(fields: [auditoriumId], references: [id])
   auditoriumId Int
   seatType     SeatType
-  rowOffset    Int
   columnOffset Int
+  rowOffset    Int
   bookingSeats bookingSeat[]
+  auditorium   auditorium    @relation(fields: [auditoriumId], references: [id])
 }
 
 model movie {
   id          Int      @id @default(autoincrement())
   title       String
-  slug        String?  @unique
   description String
   durationMin Int
   language    String
   releaseDate DateTime
   posterUrl   String?
   trailerUrl  String?
-  casts       String?
-  rating      String?
-  director    String?
   genres      String
-  shows       show[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  casts       String?
+  rating      String?
+  slug        String?  @unique
+  director    String?
   banners     banner[]
+  shows       show[]
 }
 
 model show {
   id           Int         @id @default(autoincrement())
-  movieId      Int?
-  movie        movie?      @relation(fields: [movieId], references: [id], onDelete: Cascade)
   startAt      DateTime
-  auditorium   auditorium  @relation(fields: [auditoriumId], references: [id])
   auditoriumId Int
+  movieId      Int?
   bookings     booking[]
   seatPrices   seatPrice[]
+  auditorium   auditorium  @relation(fields: [auditoriumId], references: [id])
+  movie        movie?      @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
 
 model user {
-  id           Int        @id @default(autoincrement())
-  email        String?    @unique
-  firstName    String
-  lastName     String
-  passwordHash String?
-  emailVerifiedAt            DateTime?
-  emailVerificationTokenHash String?
+  id                         Int        @id @default(autoincrement())
+  email                      String?    @unique
+  firstName                  String
+  lastName                   String
+  passwordHash               String?
+  createdAt                  DateTime   @default(now())
   emailVerificationExpiresAt DateTime?
-  passwordResetTokenHash     String?
+  emailVerificationTokenHash String?
+  emailVerifiedAt            DateTime?
   passwordResetExpiresAt     DateTime?
-  createdAt    DateTime   @default(now())
-  bookings     booking[]
-  accounts     account[]
-  userRoles    userRole[]
-  payments     payment[]
+  passwordResetTokenHash     String?
+  accounts                   account[]
+  bookings                   booking[]
+  eventBookings              eventBooking[]
+  payments                   payment[]
+  userRoles                  userRole[]
   sessions     Session[]
 }
 
 model account {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   user @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  provider          String // "google" | "apple" | "facebook"
-  providerAccountId String // account id from provider
+  id                Int    @id @default(autoincrement())
+  userId            Int
+  provider          String
+  providerAccountId String
+  user              user   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model role {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  isSystem  Boolean    @default(false)
   createdAt DateTime   @default(now())
+  isSystem  Boolean    @default(false)
   userRoles userRole[]
 }
 
 model userRole {
   userId Int
-  user   user @relation(fields: [userId], references: [id])
   roleId Int
   role   role @relation(fields: [roleId], references: [id])
+  user   user @relation(fields: [userId], references: [id])
 
-  @@unique([userId, roleId]) // prevent duplicate roles per user
+  @@unique([userId, roleId])
 }
 
 model booking {
-  id                 Int            @id @default(autoincrement())
-  show               show           @relation(fields: [showId], references: [id])
-  showId             Int
-  status             BookingStatus
-  expiresAt          DateTime
-  reservedAt         DateTime?
-  priceCents         Int
-  // paymentReferenceId String?
-  paymentId Int?
-  // paymentMethod      PaymentMethod?
-  stripeCheckoutSessionId String? @unique
-  payment   payment? 
-  invoiceId          Int?
-  invoice            invoice?       @relation(fields: [invoiceId], references: [id])
-  userId             Int?
-  user               user?          @relation(fields: [userId], references: [id])
-  createdAt          DateTime       @default(now())
-  bookingSeats       bookingSeat[]
+  id                      Int           @id @default(autoincrement())
+  showId                  Int
+  reservedAt              DateTime?
+  priceCents              Int
+  userId                  Int?
+  createdAt               DateTime      @default(now())
+  expiresAt               DateTime
+  invoiceId               Int?
+  status                  BookingStatus
+  paymentId               Int?
+  stripeCheckoutSessionId String?       @unique
+  invoice                 invoice?      @relation(fields: [invoiceId], references: [id])
+  show                    show          @relation(fields: [showId], references: [id])
+  user                    user?         @relation(fields: [userId], references: [id])
+  bookingSeats            bookingSeat[]
+  payment                 payment?
+}
+
+model eventBooking {
+  id                      Int           @id @default(autoincrement())
+  eventId                 Int
+  event                   event         @relation(fields: [eventId], references: [id])
+  userId                  Int?
+  user                    user?         @relation(fields: [userId], references: [id])
+  status                  BookingStatus
+  quantity                Int
+  priceCents              Int
+  stripeCheckoutSessionId String?       @unique
+  reservedAt              DateTime?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([eventId])
 }
 
 model invoice {
@@ -267,32 +280,39 @@ model invoice {
 model bookingSeat {
   id        Int     @id @default(autoincrement())
   bookingId Int
-  booking   booking @relation(fields: [bookingId], references: [id])
   seatId    Int?
+  booking   booking @relation(fields: [bookingId], references: [id])
   seat      seat?   @relation(fields: [seatId], references: [id])
 }
 
 model banner {
   id          Int    @id @default(autoincrement())
   movieId     Int?
-  movie       movie? @relation(fields: [movieId], references: [id])
   tag         String
   title       String
   description String
   buttonText  String
   link        String
+  movie       movie? @relation(fields: [movieId], references: [id])
 }
-
 
 model seatPrice {
   id         Int      @id @default(autoincrement())
   showId     Int
-  show       show     @relation(fields: [showId], references: [id])
   seatType   SeatType
   priceCents Int
+  show       show     @relation(fields: [showId], references: [id])
 
   @@unique([showId, seatType])
 }
+
+
+
+
+
+
+
+
 
 model Session {
   id               String   @id @default(cuid())
