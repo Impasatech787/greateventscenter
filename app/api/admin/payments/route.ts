@@ -40,6 +40,9 @@ export const GET = withAuth(
             select: { id: true, firstName: true, lastName: true, email: true },
           },
         },
+        orderBy: {
+          createdAt: "desc",
+        },
       });
       return NextResponse.json({ data: payments }, { status: 200 });
     } catch (error) {
