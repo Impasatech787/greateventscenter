@@ -1,6 +1,5 @@
 "use client";
 import { auditorium as Auditorium } from "@/app/generated/prisma";
-import { useApi } from "@/hooks/useApi";
 import { useEffect, useRef, useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { ICellRendererParams } from "ag-grid-community";
@@ -8,9 +7,11 @@ import { Edit, SofaIcon, Trash2 } from "lucide-react";
 import DeleteConfirmationModal from "@/components/admin/DeleteConfirmationModal";
 import AddAudiModal from "@/components/admin/AddAuditoriumModal";
 import SeatingModal from "@/components/admin/SeatingModal";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 export default function AuditoriumPage() {
-  const { data, loading, call } = useApi<Auditorium[]>();
+  const [audis, setAudis] = useState<Auditorium[]>();
   const [isAddAudiOpen, setIsAddAudiOpen] = useState<boolean>(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState<boolean>(false);
   const [selectedAudiId, setSelectedAudiId] = useState<number | null>(null);
@@ -18,12 +19,15 @@ export default function AuditoriumPage() {
   const [isSeatingOpen, setIsSeatingOpen] = useState<boolean>(false);
 
   const fetchAuditoriums = async () => {
-    const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/auditoriums", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    try {
+      const res =
+        await apiClient.get<ApiResponse<Auditorium[]>>("/admin/auditoriums");
+      if (res) {
+        setAudis(res.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   useEffect(() => {
@@ -34,27 +38,17 @@ export default function AuditoriumPage() {
   const handleDeleteAudi = async () => {
     if (!selectedAudiId) return;
 
-    const token = localStorage.getItem("authToken") || "";
-    const response = await fetch(`/api/admin/auditoriums/${selectedAudiId}`, {
-      method: "DELETE",
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to delete venue");
+    const res = await apiClient.delete(`/admin/auditoriums/${selectedAudiId}`);
+    if (res) {
+      setIsDeleteOpen(false);
+      setSelectedAudiId(null);
+      setSelectedAudiName("");
+      await fetchAuditoriums();
     }
-
-    setIsDeleteOpen(false);
-    setSelectedAudiId(null);
-    setSelectedAudiName("");
-    await fetchAuditoriums();
   };
 
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = data;
+  const rowData = audis;
   const columnDefs = useMemo(
     () => [
       {
@@ -113,7 +107,7 @@ export default function AuditoriumPage() {
         filter: false,
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -149,7 +143,6 @@ export default function AuditoriumPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

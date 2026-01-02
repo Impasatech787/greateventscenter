@@ -1,24 +1,28 @@
 "use client";
 import { AgGridReact } from "ag-grid-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Edit, Trash2 } from "lucide-react";
 import { blog as Blog } from "@/app/generated/prisma";
-import { useApi } from "@/hooks/useApi";
 import Link from "next/link";
 import { ICellRendererParams } from "ag-grid-community";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 
 export default function BlogManagementPage() {
-  const { data, loading, error, call } = useApi<Blog[]>();
+  const [blogs, setBlogs] = useState<Blog[]>();
   useEffect(() => {
-    const token = localStorage.getItem("authToken") || "";
-    call("/api/admin/blogs", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    const fetchBlogs = async () => {
+      try {
+        const res = await apiClient.get<ApiResponse<Blog[]>>(`/admin/blogs`);
+        setBlogs(res.data.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchBlogs();
   }, []);
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = data;
+  const rowData = blogs;
 
   const columnDefs = useMemo(
     () => [
@@ -110,7 +114,6 @@ export default function BlogManagementPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

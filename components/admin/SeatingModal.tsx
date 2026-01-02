@@ -11,6 +11,7 @@ import {
 } from "../ui/select";
 import { Button } from "../ui/button";
 import AddSeatModal, { ValidSeatForm } from "./AddSeatModal";
+import apiClient from "@/lib/axios";
 const SeatSize = 24;
 interface Seat {
   id?: number;
@@ -45,20 +46,9 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
 
   const fetchSeatings = async () => {
     try {
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch(`/api/admin/seats?auditoriumId=${audiId}`, {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        throw new Error("Failed TO get Seats");
-      } else {
-        const data = await res.json();
-        const rows = formatSeats(data.data);
-        console.log("Formatted Seats: ", rows);
-        setSeats(rows);
-      }
+      const res = await apiClient.get(`/admin/seats?auditoriumId=${audiId}`);
+      const rows = formatSeats(res.data.data);
+      setSeats(rows);
     } catch (error) {
       console.error(`Error ${error}`);
     }
@@ -86,7 +76,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
       prevSeats.map((row) => ({
         ...row,
         seats: row.seats.filter((seat) => !selectedSeats.has(seat)),
-      }))
+      })),
     );
     setSelectedSeats(new Set());
     setIsSelectMode(false);
@@ -121,7 +111,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
         : String.fromCharCode(
             seats.length > 0
               ? seats[seats.length - 1].row.charCodeAt(0) + 1
-              : "A".charCodeAt(0)
+              : "A".charCodeAt(0),
           );
       let fromNumber = 0;
 
@@ -134,7 +124,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
       const toRowLabel =
         payload.numberOfRow && payload.numberOfRow > 1
           ? String.fromCharCode(
-              rowLabel.charCodeAt(0) + payload.numberOfRow - 1
+              rowLabel.charCodeAt(0) + payload.numberOfRow - 1,
             )
           : rowLabel;
 
@@ -144,7 +134,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
         "to row: ",
         toRowLabel,
         " from number: ",
-        fromNumber
+        fromNumber,
       );
 
       //if rolabel is there then we need to get the cloumnoffset of any existing seat in that row
@@ -155,7 +145,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
           if (existingSeat && existingSeat.seat) {
             console.log(
               "Existing Seat Offset: ",
-              existingSeat.seat.columnOffset
+              existingSeat.seat.columnOffset,
             );
 
             payload.columnOffset = existingSeat.seat.columnOffset;
@@ -175,19 +165,9 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
         columnOffset: payload.columnOffset,
         seatType: payload.seatType,
       };
-      const res = await fetch("/api/admin/seats/bulk", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payloadToSend),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to add Seats");
-      } else {
-        fetchSeatings();
-      }
+
+      await apiClient.post("/admin/seats/bulk", payloadToSend);
+      fetchSeatings();
     } catch (error) {
       console.error(`Error ${error}`);
     } finally {
@@ -231,7 +211,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
           }
           return seat;
         }),
-      }))
+      })),
     );
   };
 
@@ -396,7 +376,7 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
 
                             isAccessible
                               ? "rounded-lg" // More rounded for accessible seats
-                              : "rounded-t-md rounded-b-sm"
+                              : "rounded-t-md rounded-b-sm",
                           )}
                         >
                           {isAccessible ? (
@@ -415,9 +395,9 @@ const SeatingModal: React.FC<SeatingProps> = ({ audiId, onClose }) => {
                         row,
                         row.seats[row.seats.length - 1]
                           ? Number(
-                              row.seats[row.seats.length - 1].seat?.number || 0
+                              row.seats[row.seats.length - 1].seat?.number || 0,
                             ) + 1
-                          : 1
+                          : 1,
                       )
                     }
                     className="w-6 h-6 sm:w-7 sm:h-7 border rounded hover:border-green-300 text-[9px] sm:text-[10px] transition-all duration-150"

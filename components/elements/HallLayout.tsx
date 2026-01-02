@@ -20,7 +20,7 @@ import { seat as Seat, SeatType } from "@/app/generated/prisma";
 import { ShowTicketPrice } from "./ShowtimeCalendarPicker";
 import { useRole } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { th } from "date-fns/locale";
+import apiClient from "@/lib/axios";
 
 interface SeatRow {
   row: string;
@@ -139,7 +139,7 @@ const HallLayout = ({
   const totalPrice = useMemo(() => {
     return selectedSeats.reduce((sum, seat) => {
       const ticket = data.showinfo.tickets.find(
-        (t) => t.seatType === seat.seatType
+        (t) => t.seatType === seat.seatType,
       );
       return sum + (ticket?.priceCents || 0) / 100;
     }, 0);
@@ -164,7 +164,7 @@ const HallLayout = ({
         }
         // Find the ticket price for this seat type
         const ticket = data.showinfo.tickets.find(
-          (t) => t.seatType === seat.seatType
+          (t) => t.seatType === seat.seatType,
         );
         newSelection = [
           ...prev,
@@ -193,27 +193,11 @@ const HallLayout = ({
   const bookShow = async () => {
     try {
       setIsBooking(true);
-      const token = localStorage.getItem("authToken") || "";
-      const response = await fetch("/api/bookings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          showId: data.showId,
-          seats: selectedSeats.map((seat) => seat.id),
-        }),
+      const res = await apiClient.post(`/bookings`, {
+        showId: data.showId,
+        seats: selectedSeats.map((seat) => seat.id),
       });
-      if (!response.ok) {
-        throw new Error("Booking failed");
-        // Handle error
-      } else {
-        const data = await response.json();
-        console.log("Booking successful:", data);
-        router.replace(data.data.checkoutUrl);
-        // Handle successful booking
-      }
+      router.replace(res.data.data.checkoutUrl);
     } catch (error) {
       console.error("Booking error:", error);
     } finally {
@@ -223,7 +207,7 @@ const HallLayout = ({
 
   // Get seat status for rendering
   const getSeatStatus = (
-    seat: Seat & { bookStatus: string }
+    seat: Seat & { bookStatus: string },
   ): "Normal" | "AVAILABLE" | "BOOKED" | "Selected" | "Blocked" => {
     if (isSeatSelected(seat.id)) return "Selected";
     return seat.bookStatus as
@@ -332,7 +316,7 @@ const HallLayout = ({
               ticket.seatType === SeatType.REGULAR_WHEELCHAIR_ACCESSIBLE &&
                 "border-amber-500/40 text-amber-300 bg-amber-500/10",
               ticket.seatType === "Silver" &&
-                "border-slate-400/40 text-slate-300 bg-slate-500/10"
+                "border-slate-400/40 text-slate-300 bg-slate-500/10",
             )}
           >
             {ticket.seatType}: {formatPrice(ticket.priceCents / 100)}
@@ -377,7 +361,7 @@ const HallLayout = ({
                   {row.seats.map((seat) => {
                     const status = seat.seat
                       ? getSeatStatus(
-                          seat.seat as Seat & { bookStatus: string }
+                          seat.seat as Seat & { bookStatus: string },
                         )
                       : "Normal";
                     const statusStyle = seatStatusColors[status];
@@ -392,7 +376,7 @@ const HallLayout = ({
                         onClick={() => {
                           if (loggedUser) {
                             handleSeatSelect(
-                              seat.seat as Seat & { bookStatus: string }
+                              seat.seat as Seat & { bookStatus: string },
                             );
                           } else {
                             router.push("/signin");
@@ -417,7 +401,7 @@ const HallLayout = ({
                           status === "Selected" &&
                             "ring-2 ring-rose-400/50 ring-offset-1 ring-offset-slate-950 scale-105",
                           (status === "Normal" || status === "AVAILABLE") &&
-                            "hover:scale-110 hover:z-10"
+                            "hover:scale-110 hover:z-10",
                         )}
                         style={{
                           marginTop: `${(seat.seat?.columnOffset || 0) * 24}px`,
@@ -546,7 +530,7 @@ const HallLayout = ({
                 "px-5 sm:px-6 h-11 font-semibold transition-all rounded-xl",
                 selectedSeats.length > 0
                   ? "bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white shadow-lg shadow-rose-500/25"
-                  : "bg-slate-800 text-slate-500"
+                  : "bg-slate-800 text-slate-500",
               )}
             >
               <Ticket className="w-4 h-4 mr-2" />
@@ -618,7 +602,7 @@ export const SeatSelectionAccordion = ({
       <div
         className={cn(
           "overflow-hidden transition-all duration-300 ease-in-out",
-          isOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"
+          isOpen ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0",
         )}
       >
         <div className="border-t border-rose-500/20">

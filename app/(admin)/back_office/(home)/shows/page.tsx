@@ -1,25 +1,24 @@
 "use client";
 import { show as Show } from "@/app/generated/prisma";
 import AddShow from "@/components/admin/AddShow";
-import { useApi } from "@/hooks/useApi";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
 import { ICellRendererParams, ValueFormatterParams } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { Edit, Sofa, Trash2 } from "lucide-react";
 import { useEffect, useRef, useMemo, useState } from "react";
 
 export default function ShowsPage() {
-  const { data, loading, call } = useApi<Show[]>();
+  const [shows, setShows] = useState<Show[]>();
   const [isShowModalOpen, setIsShowModalOpen] = useState(false);
   const [selectedShowId, setSelectedShowId] = useState<number | null>(null);
   const [pageSize, setPageSize] = useState(10);
 
   const fetchShows = async () => {
-    const token = localStorage.getItem("authToken") || "";
-    await call("/api/admin/shows", {
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+    const res = await apiClient.get<ApiResponse<Show[]>>(`/admin/shows`);
+    if (res) {
+      setShows(res.data.data);
+    }
   };
   useEffect(() => {
     fetchShows();
@@ -36,7 +35,7 @@ export default function ShowsPage() {
     return new Date(params.value).toLocaleTimeString();
   };
   const gridRef = useRef<AgGridReact>(null);
-  const rowData = data;
+  const rowData = shows;
   const columnDefs = useMemo(
     () => [
       {
@@ -119,7 +118,7 @@ export default function ShowsPage() {
         filter: false,
       },
     ],
-    []
+    [],
   );
 
   return (
@@ -154,7 +153,6 @@ export default function ShowsPage() {
           }}
           ref={gridRef}
           rowData={rowData}
-          loading={loading}
           columnDefs={columnDefs}
           domLayout="autoHeight"
           autoSizePadding={8}

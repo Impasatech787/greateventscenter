@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "../ui/input";
+import apiClient from "@/lib/axios";
 
 interface ModalProps {
   movieId: number;
@@ -115,28 +116,9 @@ const AddMoviePoster: React.FC<ModalProps> = ({
 
     try {
       setIsUploading(true);
-
       const formData = new FormData();
       formData.append("file", posterFile);
-
-      const token = localStorage.getItem("authToken") || "";
-      const res = await fetch(`/api/admin/movies/${movieId}/poster`, {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        let message = "Failed to upload movie poster.";
-        try {
-          const data = await res.json();
-          message = data?.message || data?.error || message;
-        } catch {}
-        throw new Error(message);
-      }
-
+      await apiClient.post(`/admin/movies/${movieId}/poster`, formData);
       setSuccessMessage("Poster uploaded successfully.");
       setApiError("");
       setFieldError("");

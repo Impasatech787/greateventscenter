@@ -12,6 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import apiClient from "@/lib/axios";
+import { ApiError } from "@/types/ApiError";
+import { ApiResponse } from "@/types/apiResponse";
 
 type BookingDetails = {
   id: number;
@@ -109,25 +112,14 @@ export default function BookingPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("No auth token found. Please login again.");
+      const res = await apiClient.get<ApiResponse<BookingDetails>>(
+        `//admin/bookings/${bookingId}`,
+      );
 
-      const res = await fetch(`/api/admin/bookings/${bookingId}`, {
-        method: "GET",
-        headers: { authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || `Failed to fetch booking (${res.status})`);
-      }
-
-      const json = (await res.json()) as { data: BookingDetails };
-      setBooking(json.data);
+      setBooking(res.data.data);
     } catch (e) {
       setBooking(null);
-      setError(e instanceof Error ? e.message : "Failed to fetch booking");
+      setError(e instanceof ApiError ? e.message : "Failed to fetch booking");
     } finally {
       setLoading(false);
     }
@@ -142,19 +134,12 @@ export default function BookingPage() {
     if (!bookingId) return;
     setDownloading(true);
     try {
-      const token = localStorage.getItem("authToken");
-      if (!token) throw new Error("No auth token found. Please login again.");
+      const res = await apiClient.get(
+        `/bookings/download-ticket/${bookingId}`,
+        { responseType: "blob" },
+      );
 
-      const res = await fetch(`/api/bookings/download-ticket/${bookingId}`, {
-        method: "GET",
-        headers: { authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(text || `Failed to download ticket (${res.status})`);
-      }
-
-      const blob = await res.blob();
+      const blob = (await res.data) as Blob;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -164,7 +149,7 @@ export default function BookingPage() {
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to download ticket");
+      setError(e instanceof ApiError ? e.message : "Failed to download ticket");
     } finally {
       setDownloading(false);
     }

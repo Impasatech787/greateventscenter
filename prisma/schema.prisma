@@ -7,6 +7,41 @@ datasource db {
   provider = "postgresql"
 }
 
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  REMOVED
+  ARCHIVED
+}
+
+
+enum SeatType {
+  REGULAR
+  REGULAR_WHEELCHAIR_ACCESSIBLE
+}
+enum PaymentStatus {
+  REQUIRES_PAYMENT_METHOD
+  REQUIRES_CONFIRMATION
+  REQUIRES_ACTION
+  PROCESSING
+  REQUIRES_CAPTURE
+SUCCEEDED
+  REFUNDED
+  DISPUTED
+  FAILED 
+}
+
+enum BookingStatus {
+  INITIATED
+  BOOKED
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+}
 model payment {
   id                    Int           @id @default(autoincrement())
   provider              PaymentMethod @default(CARD)
@@ -167,6 +202,7 @@ model user {
   eventBookings              eventBooking[]
   payments                   payment[]
   userRoles                  userRole[]
+  sessions     Session[]
 }
 
 model account {
@@ -270,39 +306,24 @@ model seatPrice {
   @@unique([showId, seatType])
 }
 
-enum BlogStatus {
-  DRAFT
-  PUBLISHED
-  REMOVED
-  ARCHIVED
-}
 
-enum SeatType {
-  REGULAR
-  REGULAR_WHEELCHAIR_ACCESSIBLE
-}
 
-enum PaymentStatus {
-  REQUIRES_PAYMENT_METHOD
-  REQUIRES_CONFIRMATION
-  REQUIRES_ACTION
-  PROCESSING
-  REQUIRES_CAPTURE
-  CANCELED
-  REFUNDED
-  DISPUTED
-  FAILED
-  SUCCEEDED
-}
 
-enum BookingStatus {
-  INITIATED
-  BOOKED
-  EXPIRED
-  CANCELLED
-}
 
-enum PaymentMethod {
-  CASH
-  CARD
+
+
+
+
+model Session {
+  id               String   @id @default(cuid())
+  sid              String   @unique
+  userId           Int
+  refreshTokenHash String
+  revoked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user user @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

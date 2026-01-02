@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRole } from "@/app/context/AuthContext";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
+import { ApiError } from "@/types/ApiError";
 
 type ProfileData = {
   id: number;
@@ -39,27 +42,14 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        setError("Please sign in to view your profile.");
-        setLoading(false);
-        return;
-      }
       try {
-        const res = await fetch("/api/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) {
-          const message =
-            res.status === 401 ? "Please sign in to view your profile." : "Unable to load your profile.";
-          throw new Error(message);
-        }
-        const data = await res.json();
-        setProfile(data.data);
+        const res = await apiClient.get<ApiResponse<ProfileData>>("/profile");
+        setProfile(res.data.data);
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Unable to load your profile.";
+        const message =
+          err instanceof ApiError
+            ? err.message
+            : "Unable to load your profile.";
         setError(message);
       } finally {
         setLoading(false);
@@ -68,7 +58,6 @@ export default function ProfilePage() {
 
     if (!authLoading) loadProfile();
   }, [authLoading]);
-
 
   return (
     <main className="bg-slate-950 text-white">
@@ -88,8 +77,8 @@ export default function ProfilePage() {
                 Profile & Preferences
               </h1>
               <p className="mt-3 max-w-xl text-base text-slate-200">
-                Keep your details up to date, review access roles, and jump back into your bookings
-                without losing your momentum.
+                Keep your details up to date, review access roles, and jump back
+                into your bookings without losing your momentum.
               </p>
             </div>
             <div className="flex gap-3">
@@ -118,9 +107,13 @@ export default function ProfilePage() {
                 {initials}
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Profile</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Profile
+                </p>
                 <h2 className="text-2xl font-semibold">
-                  {profile ? `${profile.firstName} ${profile.lastName}` : loggedUser?.email ?? "Guest"}
+                  {profile
+                    ? `${profile.firstName} ${profile.lastName}`
+                    : (loggedUser?.email ?? "Guest")}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
                   Member since {formatDate(profile?.createdAt)}
@@ -135,25 +128,33 @@ export default function ProfilePage() {
 
             <div className="grid gap-4 px-6 py-6 sm:grid-cols-2">
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">First name</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  First name
+                </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">
                   {profile?.firstName ?? "—"}
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Last name</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Last name
+                </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">
                   {profile?.lastName ?? "—"}
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Email</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Email
+                </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">
                   {profile?.email ?? loggedUser?.email ?? "—"}
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Account ID</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  Account ID
+                </p>
                 <p className="mt-2 text-lg font-semibold text-slate-900">
                   {profile?.id ?? loggedUser?.userId ?? "—"}
                 </p>
@@ -178,12 +179,15 @@ export default function ProfilePage() {
 
           <div className="grid gap-6">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/30">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Account status</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Account status
+              </p>
               <h3 className="mt-2 text-2xl font-semibold text-slate-900">
                 {loading ? "Loading profile..." : "Everything is ready"}
               </h3>
               <p className="mt-3 text-sm text-slate-500">
-                We use your details to personalize events, tickets, and venue suggestions.
+                We use your details to personalize events, tickets, and venue
+                suggestions.
               </p>
               {error && (
                 <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -198,7 +202,9 @@ export default function ProfilePage() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/30">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Quick links</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Quick links
+              </p>
               <div className="mt-4 grid gap-3">
                 <Link
                   href="/profile/bookings"

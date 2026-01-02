@@ -278,7 +278,15 @@ export const POST = withAuth(
         // }
       } catch (error) {
         console.error(error);
-        return NextResponse.json({ error: "Server error" }, { status: 500 });
+        return NextResponse.json(
+          {
+            error:
+              error instanceof Stripe.errors.StripeError
+                ? error.message
+                : "Server Error",
+          },
+          { status: 500 },
+        );
       }
     } catch (error) {
       console.error(error);

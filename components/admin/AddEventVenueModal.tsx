@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
 import { Input } from "../ui/input";
+import apiClient from "@/lib/axios";
 
 interface AddEventVenueProps {
   onClose: () => void;
@@ -46,27 +47,20 @@ const AddEventVenueModal: React.FC<AddEventVenueProps> = ({
     if (validateForm()) {
       setLoading(true);
       try {
-        const token = localStorage.getItem("authToken") || "";
-        const res = await fetch("/api/admin/cinemas", {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name, location }),
+        const res = await apiClient.post(`/admin/cinemas`, {
+          name,
+          location,
         });
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Failed to Submit venue");
+        if (res) {
+          setSuccessMessage(`Venue  created successfully!`);
+          setTimeout(() => {
+            setName("");
+            setLocation("");
+            setFormError(null);
+            onClose();
+            onAdd();
+          }, 300);
         }
-        setSuccessMessage(`Venue  created successfully!`);
-        setTimeout(() => {
-          setName("");
-          setLocation("");
-          setFormError(null);
-          onClose();
-          onAdd();
-        }, 300);
       } catch (error) {
         console.error(error);
         setApiError(`${error}`);

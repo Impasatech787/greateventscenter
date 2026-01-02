@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { SeatSelectionAccordion } from "@/components/elements/HallLayout";
 import { seat as Seat } from "@/app/generated/prisma";
+import apiClient from "@/lib/axios";
 
 export interface Showtime {
   label: string;
@@ -124,7 +125,7 @@ export default function ShowtimeCalendarPicker({
       selectedShowtimeData
         ? formatReadable(selectedShowtimeData.dateObj)
         : "Select a date",
-    [selectedShowtimeData]
+    [selectedShowtimeData],
   );
 
   //select first available time when date is changed or initialized
@@ -151,7 +152,7 @@ export default function ShowtimeCalendarPicker({
 
     // Find matching showtime
     const matching = parsedShowtimes.find(
-      (s) => s.dateObj.toDateString() === date.toDateString()
+      (s) => s.dateObj.toDateString() === date.toDateString(),
     );
 
     if (matching) {
@@ -168,12 +169,11 @@ export default function ShowtimeCalendarPicker({
   const fetchShow = async (showId: number) => {
     console.log("Fetching show for ID:", showId);
     try {
-      const res = await fetch(`/api/movies/show/${showId}`);
-      const data = await res.json();
+      const res = await apiClient.get(`/movies/show/${showId}`);
       setHallSeats(
-        data.data.auditorium.seats as (Seat & { bookStatus: string })[]
+        res.data.data.auditorium.seats as (Seat & { bookStatus: string })[],
       );
-      setShowSeatPricing(data.data.seatPrices as ShowTicketPrice[]);
+      setShowSeatPricing(res.data.data.seatPrices as ShowTicketPrice[]);
     } catch (error) {
       console.error(error);
     }
