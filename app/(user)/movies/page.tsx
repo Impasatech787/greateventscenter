@@ -21,7 +21,6 @@ async function getBaseUrl() {
 
 async function fetchNowShowings() {
   const baseUrl = await getBaseUrl();
-  console.log(baseUrl);
   const res = await fetch(`${baseUrl}/api/movies/now-showing`);
 
   if (!res.ok) throw new Error("Failed To fetch Movies");

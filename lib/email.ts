@@ -26,7 +26,7 @@ const getSmtpConfig = () => {
   return { host, port, secure, auth: { user, pass } };
 };
 
-const createTransporter = () => {
+export const createTransporter = () => {
   const smtpConfig = getSmtpConfig();
   return nodemailer.createTransport({
     ...smtpConfig,
