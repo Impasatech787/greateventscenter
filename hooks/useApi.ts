@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 type UseApiResult<T> = {
   data: T | null;
@@ -12,7 +12,7 @@ export function useApi<T>(): UseApiResult<T> {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const call = async (url: string, options?: RequestInit) => {
+  const call = useCallback(async (url: string, options?: RequestInit) => {
     try {
       setLoading(true);
       setError(null);
@@ -29,6 +29,6 @@ export function useApi<T>(): UseApiResult<T> {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   return { data, loading, error, call };
 }
