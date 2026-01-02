@@ -4,7 +4,7 @@ import { buildTicketData, renderTicketPdfBuffer } from "./getTicketData";
 export const emailTicket = async (
   bookingId: string,
   userMail: string,
-  name: string
+  name: string,
 ) => {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
   const fromEmail = process.env.EMAIL_FROM;
@@ -25,7 +25,7 @@ export const emailTicket = async (
 
   const safeBaseUrl = baseUrl.replace(/\/$/, "");
   const downloadUrl = `${safeBaseUrl}/api/bookings/download-ticket/${encodeURIComponent(
-    String(ticketData.bookingId)
+    String(ticketData.bookingId),
   )}`;
   const bookingsUrl = `${safeBaseUrl}/profile/bookings`;
 
@@ -92,7 +92,6 @@ If you did not make this booking, please contact support.`;
       </p>
     </div>
   `;
-  console.log(`Sending ticket email to ${userMail} for booking ${bookingId}`);
 
   await transporter.sendMail({
     from: `${displayName} <${fromEmail}>`,
