@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export const GET = async (req: NextRequest) => {
+export const GET = async (_req: NextRequest) => {
   try {
     const now = new Date();
     // Start of today
@@ -15,7 +15,7 @@ export const GET = async (req: NextRequest) => {
     const endOfTomorrow = new Date(
       now.getFullYear(),
       now.getMonth(),
-      now.getDate() + 2,
+      now.getDate() + 7,
     );
     const movies = await prisma.movie.findMany({
       where: {
