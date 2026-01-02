@@ -28,6 +28,9 @@ export const GET = withAuth(
               startAt: true,
             },
           },
+          payment: {
+            select: { status: true },
+          },
           bookingSeats: {
             select: {
               seat: {
@@ -60,12 +63,13 @@ export const GET = withAuth(
         }),
         quantity: u.bookingSeats.length,
         totalPrice: u.priceCents,
+        paymentStatus: u.payment?.status,
       }));
       return NextResponse.json({ data, message: "Success!" }, { status: 200 });
     } catch {
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );
 
 export const POST = withAuth(
@@ -86,13 +90,13 @@ export const POST = withAuth(
       if (!process.env.STRIPE_SECRET_KEY) {
         return NextResponse.json(
           { error: "Stripe is not configured" },
-          { status: 500 }
+          { status: 500 },
         );
       }
       if (!process.env.NEXT_PUBLIC_BASE_URL) {
         return NextResponse.json(
           { error: "NEXT_PUBLIC_BASE_URL is not configured" },
-          { status: 500 }
+          { status: 500 },
         );
       }
 
@@ -151,7 +155,7 @@ export const POST = withAuth(
           });
 
           const priceMap = new Map(
-            prices.map((p) => [p.seatType, p.priceCents])
+            prices.map((p) => [p.seatType, p.priceCents]),
           );
 
           const totalPrice = audiSeats.reduce((sum, seat) => {
@@ -240,7 +244,7 @@ export const POST = withAuth(
             },
             message: "Success!",
           },
-          { status: 200 }
+          { status: 200 },
         );
       } catch (error: unknown) {
         console.error(error);
@@ -251,5 +255,5 @@ export const POST = withAuth(
       console.log(error);
       return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
-  }
+  },
 );

@@ -1,6 +1,8 @@
 "use client";
 
-import { BookingStatus } from "@/app/generated/prisma";
+import { BookingStatus, PaymentStatus } from "@/app/generated/prisma";
+import CancelBookingModal from "@/components/elements/CancelBookingModal";
+import RefundRequestModal from "@/components/elements/RefundRequestModal";
 import { Separator } from "@/components/ui/separator";
 import apiClient from "@/lib/axios";
 import { ApiError } from "@/types/ApiError";
@@ -22,6 +24,7 @@ interface Booking {
   totalPrice: number;
   seats: BookSeat[];
   status: BookingStatus;
+  paymentStatus: PaymentStatus;
 }
 
 type BookingTabKey = "upcoming" | "past" | "cancelled";
@@ -63,19 +66,38 @@ function SeatChip({ seat }: { seat: BookSeat }) {
 
 function BookingCard({ booking }: { booking: Booking }) {
   const [isDownloading, setIsDownloading] = useState(false);
+  const [openCancelModal, setOpenCancelModal] = useState<boolean>(false);
+  const [openRefundModal, setOpenRefundModal] = useState<boolean>(false);
+  const isCancellable = () => {
+    const startAt = new Date(booking.startAt);
+    const startTs = startAt.getTime();
+    if (Number.isNaN(startTs)) return false;
+
+    // Cancel allowed only up to 2 hours before show start.
+    const cancelDeadlineTs = startTs - 2 * 60 * 60 * 1000;
+    if (Date.now() > cancelDeadlineTs) return false;
+
+    return booking.status === BookingStatus.BOOKED;
+  };
   const reserved = booking.reservedAt;
   const statusLabel =
     booking.status === BookingStatus.CANCELLED
       ? "Cancelled"
       : booking.status === BookingStatus.EXPIRED
-        ? "Expired"
-        : "Failed";
+      ? "Expired"
+      : "Failed";
+
+  const canRequestRefund =
+    booking.status === BookingStatus.CANCELLED &&
+    booking.paymentStatus === PaymentStatus.SUCCEEDED;
+
+  const isRefunded = booking.paymentStatus === PaymentStatus.REFUNDED;
   const downloadTicket = async (bookingId: number) => {
     setIsDownloading(true);
     try {
       const res = await apiClient.get(
         `/bookings/download-ticket/${bookingId}`,
-        { responseType: "blob" },
+        { responseType: "blob" }
       );
       const blob = (await res.data) as Blob;
       const url = window.URL.createObjectURL(blob);
@@ -167,31 +189,87 @@ function BookingCard({ booking }: { booking: Booking }) {
 
             <div className="mt-4 flex flex-wrap gap-2 justify-end">
               {booking.status != BookingStatus.BOOKED && (
-                <div
-                  className={` rounded-xl bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600`}
-                >
-                  {statusLabel}
-                </div>
+                <>
+                  <div
+                    className={` rounded-xl bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600`}
+                  >
+                    {statusLabel}
+                  </div>
+                  {isRefunded ? (
+                    <div className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white">
+                      Refunded
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!canRequestRefund}
+                      className={
+                        "rounded-xl px-4 py-2 text-sm font-medium text-white transition " +
+                        (canRequestRefund
+                          ? "bg-green-600 hover:bg-green-700"
+                          : "bg-green-600/50 cursor-not-allowed")
+                      }
+                      onClick={() => setOpenRefundModal(true)}
+                      title={
+                        canRequestRefund
+                          ? "Request a refund"
+                          : "Refunds are available after cancellation and successful payment"
+                      }
+                    >
+                      Request Refund
+                    </button>
+                  )}
+                </>
               )}
               {booking.status == BookingStatus.BOOKED && (
-                <button
-                  type="button"
-                  disabled={isDownloading}
-                  className={
-                    `rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700` +
-                    (isDownloading ? " opacity-50 cursor-not-allowed" : "")
-                  }
-                  onClick={() => {
-                    downloadTicket(booking.id);
-                  }}
-                >
-                  {isDownloading ? "Downloading..." : "Download Ticket"}
-                </button>
+                <>
+                  <button
+                    type="button"
+                    disabled={isDownloading}
+                    className={
+                      `rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700` +
+                      (isDownloading ? " opacity-50 cursor-not-allowed" : "")
+                    }
+                    onClick={() => {
+                      downloadTicket(booking.id);
+                    }}
+                  >
+                    {isDownloading ? "Downloading..." : "Download Ticket"}
+                  </button>
+                  {isCancellable() && (
+                    <button
+                      type="button"
+                      disabled={isDownloading}
+                      className={`rounded-xl bg-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700`}
+                      onClick={() => {
+                        setOpenCancelModal(true);
+                      }}
+                    >
+                      Cancel Booking
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
       </div>
+      {openCancelModal && (
+        <CancelBookingModal
+          bookingId={booking.id}
+          movieName={booking.movieTitle}
+          onClose={() => setOpenCancelModal(false)}
+        />
+      )}
+
+      {openRefundModal && (
+        <RefundRequestModal
+          bookingId={booking.id}
+          movieName={booking.movieTitle}
+          amountCents={booking.totalPrice}
+          onClose={() => setOpenRefundModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -253,7 +331,7 @@ export default function MyBookings() {
         count: groupedBookings.cancelled.length,
       },
     ],
-    [groupedBookings],
+    [groupedBookings]
   );
 
   const activeBookings = groupedBookings[activeTab];
@@ -265,7 +343,7 @@ export default function MyBookings() {
 
   const totalSpent = useMemo(
     () => bookingLists.reduce((sum, b) => sum + (b.totalPrice || 0) / 100, 0),
-    [bookingLists],
+    [bookingLists]
   );
 
   useEffect(() => {
@@ -282,7 +360,7 @@ export default function MyBookings() {
       } catch (err: unknown) {
         if (alive)
           setErrorMsg(
-            err instanceof ApiError ? err.message : "Something went wrong",
+            err instanceof ApiError ? err.message : "Something went wrong"
           );
       } finally {
         if (alive) setIsLoading(false);
