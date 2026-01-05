@@ -28,6 +28,9 @@ export const GET = withAuth(
               startAt: true,
             },
           },
+          payment: {
+            select: { status: true },
+          },
           bookingSeats: {
             select: {
               seat: {
@@ -60,6 +63,7 @@ export const GET = withAuth(
         }),
         quantity: u.bookingSeats.length,
         totalPrice: u.priceCents,
+        paymentStatus: u.payment?.status,
       }));
       return NextResponse.json({ data, message: "Success!" }, { status: 200 });
     } catch {
@@ -209,6 +213,13 @@ export const POST = withAuth(
           metadata: {
             bookingId: booking.id.toString(),
             showId: booking.showId.toString(),
+          },
+          payment_intent_data: {
+            metadata: {
+              bookingId: booking.id.toString(),
+              showId: booking.showId.toString(),
+              userId: user.userId.toString(),
+            },
           },
         });
 

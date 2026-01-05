@@ -101,6 +101,7 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState<boolean>(false);
 
   const fetchBooking = async () => {
     if (!bookingId) {
@@ -113,7 +114,7 @@ export default function BookingPage() {
     setError(null);
     try {
       const res = await apiClient.get<ApiResponse<BookingDetails>>(
-        `//admin/bookings/${bookingId}`,
+        `/admin/bookings/${bookingId}`,
       );
 
       setBooking(res.data.data);
@@ -129,6 +130,16 @@ export default function BookingPage() {
     fetchBooking();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
+
+  const emailTicket = async () => {
+    try {
+      setSendingEmail(true);
+      await apiClient.post(`/admin/email/ticket/${bookingId}`, {});
+    } catch (error) {
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const downloadTicket = async () => {
     if (!bookingId) return;
@@ -164,29 +175,40 @@ export default function BookingPage() {
             View booking information, seats, and ticket actions.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/back_office/bookings")}
-            className="border-gray-300"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={downloadTicket}
-            disabled={downloading || !bookingId}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {downloading ? "Downloading..." : "Download Ticket"}
-          </Button>
-          <Button
-            onClick={fetchBooking}
-            disabled={loading || !bookingId}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            Refresh
-          </Button>
-        </div>
+        {!loading && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push("/back_office/bookings")}
+              className="border-gray-300"
+            >
+              Back
+            </Button>
+            <Button
+              onClick={downloadTicket}
+              disabled={downloading || !bookingId}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {downloading ? "Downloading..." : "Download Ticket"}
+            </Button>
+            {booking?.status == "BOOKED" && (
+              <Button
+                onClick={emailTicket}
+                disabled={sendingEmail || !bookingId}
+                className="bg-slate-600 hover:bg-slate-800 text-white"
+              >
+                {sendingEmail ? "Sending Email" : "Send Email"}
+              </Button>
+            )}
+            <Button
+              onClick={fetchBooking}
+              disabled={loading || !bookingId}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Refresh
+            </Button>
+          </div>
+        )}
       </div>
 
       {error && (

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { emailTicket } from "@/lib/emailTicket";
+import { Prisma } from "@/app/generated/prisma";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -16,24 +18,41 @@ export async function POST(req: Request) {
       event = stripe.webhooks.constructEvent(
         rawBody,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET!,
+        process.env.STRIPE_WEBHOOK_SECRET!
       );
     } catch (error) {
       return new Response(`Webhook Error ${error}`, { status: 400 });
     }
     try {
+      let shouldEmailTicket = false;
+      let ticketEmailBookingId: string | null = null;
+      let ticketEmailTo: string | null = null;
+      let ticketEmailName = "";
+
       await prisma.$transaction(async (tx) => {
         const existing = await tx.stripeEvent.findUnique({
           where: { stripeEventId: event.id },
           select: { id: true },
         });
         if (existing) return;
-        const obj: any = event.data.object;
+        const obj = event.data.object as unknown as Record<string, unknown>;
+        const objType = typeof obj.object === "string" ? obj.object : null;
+        const objId = typeof obj.id === "string" ? obj.id : null;
+        const objPaymentIntent =
+          typeof obj.payment_intent === "string" ? obj.payment_intent : null;
+        const objReceiptEmail =
+          typeof obj.receipt_email === "string" ? obj.receipt_email : null;
+        const objMetadata =
+          obj.metadata && typeof obj.metadata === "object"
+            ? (obj.metadata as Record<string, unknown>)
+            : null;
+        const objCustomerName =
+          typeof objMetadata?.customerName === "string"
+            ? objMetadata.customerName
+            : "";
 
         const paymentIntentId: string | null =
-          obj?.object == "payment_intent"
-            ? obj.id
-            : (obj?.payment_intent ?? null);
+          objType === "payment_intent" ? objId : objPaymentIntent;
 
         const stripeEvent = await tx.stripeEvent.create({
           data: {
@@ -42,7 +61,7 @@ export async function POST(req: Request) {
             livemode: event.livemode ?? false,
             created: typeof event.created === "number" ? event.created : null,
             processedAt: new Date(),
-            payload: event as any,
+            payload: event as unknown as Prisma.InputJsonValue,
             stripePaymentIntentId: paymentIntentId,
           },
         });
@@ -61,7 +80,7 @@ export async function POST(req: Request) {
               stripeCustomerId: (pi.customer as string) ?? null,
               livemode: pi.livemode ?? false,
               receiptEmail: pi.receipt_email ?? null,
-              metadata: (pi.metadata ?? {}) as any,
+              metadata: (pi.metadata ?? {}) as unknown as Prisma.InputJsonValue,
               paidAt: new Date(),
               stripeEventLastId: event.id,
               bookingId: pi.metadata?.bookingId
@@ -77,7 +96,7 @@ export async function POST(req: Request) {
               stripeCustomerId: (pi.customer as string) ?? null,
               livemode: pi.livemode ?? false,
               receiptEmail: pi.receipt_email ?? null,
-              metadata: (pi.metadata ?? {}) as any,
+              metadata: (pi.metadata ?? {}) as unknown as Prisma.InputJsonValue,
               paidAt: new Date(),
               stripeEventLastId: event.id,
               bookingId: pi.metadata?.bookingId
@@ -93,7 +112,6 @@ export async function POST(req: Request) {
             const booking = await tx.booking.findUnique({
               where: { id: bookingId },
             });
-
             if (booking && booking.status !== "BOOKED") {
               await tx.booking.update({
                 where: { id: bookingId },
@@ -102,6 +120,14 @@ export async function POST(req: Request) {
                   paymentId: pay.id,
                 },
               });
+
+              ticketEmailBookingId = String(bookingId);
+              ticketEmailTo = pi.receipt_email ?? objReceiptEmail;
+              ticketEmailName =
+                (typeof pi.metadata?.customerName === "string"
+                  ? pi.metadata.customerName
+                  : objCustomerName) || "";
+              shouldEmailTicket = Boolean(ticketEmailTo);
             }
           }
         }
@@ -121,7 +147,7 @@ export async function POST(req: Request) {
               stripeCustomerId: (pi.customer as string) ?? null,
               livemode: pi.livemode ?? false,
               receiptEmail: pi.receipt_email ?? null,
-              metadata: (pi.metadata ?? {}) as any,
+              metadata: (pi.metadata ?? {}) as unknown as Prisma.InputJsonValue,
               stripeEventLastId: event.id,
               bookingId: pi.metadata?.bookingId
                 ? Number(pi.metadata.bookingId)
@@ -166,8 +192,37 @@ export async function POST(req: Request) {
           }
         }
 
-        // Link the stripeEvent to payment if we have payment id
-        // (optional, but nice)
+        if (event.type === "refund.updated") {
+          const refund = event.data.object as Stripe.Refund;
+          const paymentIntentId =
+            typeof refund.payment_intent === "string"
+              ? refund.payment_intent
+              : refund.payment_intent?.id;
+
+          if (paymentIntentId) {
+            if (refund.status === "succeeded") {
+              await tx.payment.update({
+                where: { stripePaymentIntentId: paymentIntentId },
+                data: {
+                  status: "REFUNDED",
+                  stripeEventLastId: event.id,
+                },
+              });
+            } else if (
+              refund.status === "failed" ||
+              refund.status === "canceled"
+            ) {
+              await tx.payment.update({
+                where: { stripePaymentIntentId: paymentIntentId },
+                data: {
+                  status: "SUCCEEDED",
+                  stripeEventLastId: event.id,
+                },
+              });
+            }
+          }
+        }
+
         if (paymentIntentId) {
           const pay = await tx.payment.findUnique({
             where: { stripePaymentIntentId: paymentIntentId },
@@ -181,12 +236,25 @@ export async function POST(req: Request) {
           }
         }
       });
+
+      if (shouldEmailTicket && ticketEmailBookingId && ticketEmailTo) {
+        try {
+          await emailTicket(
+            ticketEmailBookingId,
+            ticketEmailTo,
+            ticketEmailName
+          );
+        } catch (error) {
+          // Don't fail the webhook after the payment was recorded.
+          console.error("Failed to send ticket email", error);
+        }
+      }
       return NextResponse.json({ received: true });
     } catch (error) {
       console.error(error);
       return NextResponse.json(
         { error: "Webhook processing error" },
-        { status: 500 },
+        { status: 500 }
       );
     }
   } catch {

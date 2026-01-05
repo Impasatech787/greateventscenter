@@ -12,6 +12,7 @@ import { service as Service } from "@/app/generated/prisma";
 export default function ServicesManagementPage() {
   const [services, setServices] = useState<Service[]>([]);
   const gridRef = useRef<AgGridReact>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const fetchServices = async () => {
     try {
@@ -36,6 +37,10 @@ export default function ServicesManagementPage() {
     try {
       await apiClient.delete(`/admin/services/${id}`);
       setServices((prev) => prev.filter((item) => item.id !== id));
+      setToastMessage("Service deleted successfully");
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 2500);
     } catch (error) {
       console.error(error);
     }
@@ -158,6 +163,11 @@ export default function ServicesManagementPage() {
           paginationPageSize={10}
         />
       </div>
+      {toastMessage && (
+        <div className="fixed right-6 top-6 z-50 rounded-md bg-gray-900 px-4 py-3 text-sm text-white shadow-lg">
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }
