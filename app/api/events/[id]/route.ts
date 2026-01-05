@@ -1,15 +1,19 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export const GET = async (_req: NextRequest, params: any) => {
+export const GET = async (
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) => {
   try {
-    const id = Number(params.id);
-    if (!Number.isFinite(id)) {
+    const { id } = await context.params;
+    const eventId = Number(id);
+    if (!Number.isFinite(eventId)) {
       return NextResponse.json({ error: "Invalid id" }, { status: 400 });
     }
 
     const event = await prisma.event.findUnique({
-      where: { id },
+      where: { id: eventId },
       include: {
         cinema: {
           select: {

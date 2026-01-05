@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,12 +36,15 @@ const formatDate = (date: string) => {
   });
 };
 
-export default function EventCheckoutPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function EventCheckoutPage() {
   const router = useRouter();
+  const params = useParams();
+  const eventId =
+    typeof params?.id === "string"
+      ? params.id
+      : Array.isArray(params?.id)
+        ? params.id[0]
+        : undefined;
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +52,11 @@ export default function EventCheckoutPage({
 
   useEffect(() => {
     const fetchEvent = async () => {
-      const res = await fetch(`/api/events/${params.id}`);
+      if (!eventId) {
+        setError("Event not found.");
+        return;
+      }
+      const res = await fetch(`/api/events/${eventId}`);
       if (!res.ok) {
         setError("Event not found.");
         return;
@@ -58,7 +65,7 @@ export default function EventCheckoutPage({
       setEvent(payload.data as EventDetail);
     };
     fetchEvent();
-  }, [params.id]);
+  }, [eventId]);
 
   const totalPrice = useMemo(() => {
     if (!event?.priceCents) return 0;

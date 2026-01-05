@@ -9,6 +9,49 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: "2025-12-15.clover",
 });
 
+export const GET = withAuth(
+  async (_req: NextRequest, _params: unknown, user: AuthUser) => {
+    try {
+      const bookings = await prisma.eventBooking.findMany({
+        where: {
+          userId: Number(user.userId),
+        },
+        include: {
+          event: {
+            include: {
+              cinema: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      const data = bookings.map((booking) => ({
+        id: booking.id,
+        eventTitle: booking.event.title,
+        eventThumbnailUrl: booking.event.thumbnailUrl,
+        date: booking.event.date.toISOString().split("T")[0],
+        startTime: booking.event.startTime,
+        endTime: booking.event.endTime,
+        venueName: booking.event.cinema.name,
+        venueLocation: booking.event.cinema.location,
+        reservedAt: booking.reservedAt,
+        quantity: booking.quantity,
+        totalPrice: booking.priceCents,
+        status: booking.status,
+      }));
+
+      return NextResponse.json({ data, message: "Success!" }, { status: 200 });
+    } catch (error) {
+      console.error(error);
+      return NextResponse.json({ error: "Server error" }, { status: 500 });
+    }
+  },
+  ["User", "Admin"],
+);
+
 export const POST = withAuth(
   async (req: NextRequest, _params: unknown, user: AuthUser) => {
     try {
