@@ -137,7 +137,7 @@ export default function EventsPage() {
                     <TableCell className="font-medium">
                       {eventItem.title}
                     </TableCell>
-                    <TableCell>{eventItem.venueName}</TableCell>
+                    <TableCell>{eventItem.cinemaName}</TableCell>
                     <TableCell>{eventItem.date}</TableCell>
                     <TableCell>
                       {eventItem.startTime} - {eventItem.endTime}

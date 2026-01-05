@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-export default function EventBookingCancelPage() {
+function EventBookingCancel() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = useMemo(
@@ -28,17 +28,20 @@ export default function EventBookingCancelPage() {
           <p className="mt-3 text-xs text-gray-500">Booking ID: {bookingId}</p>
         )}
         <div className="mt-6 flex flex-col gap-3">
-          <Button onClick={() => router.push("/events")}>
-            Back to events
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => router.back()}
-          >
+          <Button onClick={() => router.push("/events")}>Back to events</Button>
+          <Button variant="secondary" onClick={() => router.back()}>
             Try again
           </Button>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EventBookingCancelPage() {
+  return (
+    <Suspense>
+      <EventBookingCancel />
+    </Suspense>
   );
 }
