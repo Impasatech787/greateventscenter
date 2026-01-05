@@ -307,6 +307,12 @@ model seatPrice {
     @@unique([showId, seatType])
 }
 
+model homeBanner{
+  id         Int      @id @default(autoincrement())
+  bannerUrl String
+  bannerHero String
+}
+
 
 
 
