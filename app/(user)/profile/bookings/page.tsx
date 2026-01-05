@@ -24,6 +24,21 @@ interface Booking {
   status: BookingStatus;
 }
 
+interface EventBooking {
+  id: number;
+  eventTitle: string;
+  eventThumbnailUrl?: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  venueName: string;
+  venueLocation?: string | null;
+  reservedAt?: string | null;
+  quantity: number;
+  totalPrice: number;
+  status: BookingStatus;
+}
+
 type BookingTabKey = "upcoming" | "past" | "cancelled";
 
 function formatDT(value?: string) {
@@ -49,6 +64,16 @@ function formatMoney(n: number) {
   } catch {
     return `${n}`;
   }
+}
+
+function formatEventDate(date: string, startTime: string, endTime: string) {
+  const parsed = new Date(`${date}T00:00:00`);
+  const dateLabel = parsed.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+  return `${dateLabel} • ${startTime} - ${endTime}`;
 }
 
 function SeatChip({ seat }: { seat: BookSeat }) {
@@ -196,11 +221,139 @@ function BookingCard({ booking }: { booking: Booking }) {
   );
 }
 
+function EventBookingCard({ booking }: { booking: EventBooking }) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  const statusLabel =
+    booking.status === BookingStatus.CANCELLED
+      ? "Cancelled"
+      : booking.status === BookingStatus.EXPIRED
+        ? "Expired"
+        : "Failed";
+
+  const downloadTicket = async (bookingId: number) => {
+    setIsDownloading(true);
+    try {
+      const res = await apiClient.get(
+        `/events/bookings/download-ticket/${bookingId}`,
+        { responseType: "blob" },
+      );
+      const blob = (await res.data) as Blob;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `event-booking-${bookingId}-ticket.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download event ticket error:", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <div className="rounded-2xl border bg-white shadow-sm overflow-hidden">
+      <div className="p-4 sm:p-5">
+        <div className="flex gap-4">
+          <div className="shrink-0">
+            <div className="h-28 w-20 sm:h-32 sm:w-24 overflow-hidden rounded-xl bg-gray-100 border">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={booking.eventThumbnailUrl || "/MovieImage2.png"}
+                alt={booking.eventTitle}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate text-base sm:text-lg font-semibold text-gray-900">
+                  {booking.eventTitle}
+                </h2>
+                <p className="mt-1 text-sm text-gray-600">
+                  {formatEventDate(
+                    booking.date,
+                    booking.startTime,
+                    booking.endTime,
+                  )}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  {booking.venueName}
+                  {booking.venueLocation ? ` • ${booking.venueLocation}` : ""}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  Reserved:{" "}
+                  <span className="font-medium">
+                    {formatDT(booking.reservedAt ?? undefined)}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <Separator className="my-3" />
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-xl bg-gray-50 border p-3">
+                <p className="text-xs text-gray-500 text-center">
+                  Ticket Quantity
+                </p>
+                <p className="text-sm text-center font-semibold text-gray-900">
+                  {booking.quantity}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 border p-3">
+                <p className="text-xs text-gray-500 text-center">
+                  Total Amount
+                </p>
+                <p className="text-sm font-semibold text-gray-900 text-center">
+                  {formatMoney(booking.totalPrice / 100)}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2 justify-end">
+              {booking.status != BookingStatus.BOOKED && (
+                <div className="rounded-xl bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600">
+                  {statusLabel}
+                </div>
+              )}
+              {booking.status == BookingStatus.BOOKED && (
+                <button
+                  type="button"
+                  disabled={isDownloading}
+                  className={
+                    `rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700` +
+                    (isDownloading ? " opacity-50 cursor-not-allowed" : "")
+                  }
+                  onClick={() => {
+                    downloadTicket(booking.id);
+                  }}
+                >
+                  {isDownloading ? "Downloading..." : "Download Ticket"}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MyBookings() {
   const [bookingLists, setBookingLists] = useState<Booking[]>([]);
+  const [eventBookingLists, setEventBookingLists] = useState<EventBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<BookingTabKey>("upcoming");
+  const [activeEventTab, setActiveEventTab] =
+    useState<BookingTabKey>("upcoming");
 
   const groupedBookings = useMemo<Record<BookingTabKey, Booking[]>>(() => {
     const upcoming: Booking[] = [];
@@ -235,6 +388,42 @@ export default function MyBookings() {
     return { upcoming, past, cancelled };
   }, [bookingLists]);
 
+  const groupedEventBookings = useMemo<Record<BookingTabKey, EventBooking[]>>(
+    () => {
+      const upcoming: EventBooking[] = [];
+      const past: EventBooking[] = [];
+      const cancelled: EventBooking[] = [];
+      const now = new Date();
+
+      eventBookingLists.forEach((booking) => {
+        const startAt = new Date(`${booking.date}T${booking.startTime}`);
+        if (booking.status === BookingStatus.BOOKED) {
+          if (!Number.isNaN(startAt.getTime()) && startAt >= now) {
+            upcoming.push(booking);
+          } else {
+            past.push(booking);
+          }
+        } else {
+          cancelled.push(booking);
+        }
+      });
+
+      const byStartAsc = (a: EventBooking, b: EventBooking) =>
+        new Date(`${a.date}T${a.startTime}`).getTime() -
+        new Date(`${b.date}T${b.startTime}`).getTime();
+      const byStartDesc = (a: EventBooking, b: EventBooking) =>
+        new Date(`${b.date}T${b.startTime}`).getTime() -
+        new Date(`${a.date}T${a.startTime}`).getTime();
+
+      upcoming.sort(byStartAsc);
+      past.sort(byStartDesc);
+      cancelled.sort(byStartDesc);
+
+      return { upcoming, past, cancelled };
+    },
+    [eventBookingLists],
+  );
+
   const tabs = useMemo(
     () => [
       {
@@ -257,16 +446,24 @@ export default function MyBookings() {
   );
 
   const activeBookings = groupedBookings[activeTab];
+  const activeEventBookings = groupedEventBookings[activeEventTab];
   const emptyMessages: Record<BookingTabKey, string> = {
     upcoming: "No upcoming bookings.",
     past: "No past bookings.",
     cancelled: "No cancelled bookings.",
   };
 
-  const totalSpent = useMemo(
-    () => bookingLists.reduce((sum, b) => sum + (b.totalPrice || 0) / 100, 0),
-    [bookingLists],
-  );
+  const totalSpent = useMemo(() => {
+    const movieTotal = bookingLists.reduce(
+      (sum, b) => sum + (b.totalPrice || 0) / 100,
+      0,
+    );
+    const eventTotal = eventBookingLists.reduce(
+      (sum, b) => sum + (b.totalPrice || 0) / 100,
+      0,
+    );
+    return movieTotal + eventTotal;
+  }, [bookingLists, eventBookingLists]);
 
   useEffect(() => {
     let alive = true;
@@ -276,9 +473,15 @@ export default function MyBookings() {
       setErrorMsg(null);
 
       try {
-        const res = await apiClient.get<ApiResponse<Booking[]>>("/bookings");
+        const [movieRes, eventRes] = await Promise.all([
+          apiClient.get<ApiResponse<Booking[]>>("/bookings"),
+          apiClient.get<ApiResponse<EventBooking[]>>("/events/bookings"),
+        ]);
 
-        if (alive) setBookingLists(res.data.data);
+        if (alive) {
+          setBookingLists(movieRes.data.data);
+          setEventBookingLists(eventRes.data.data);
+        }
       } catch (err: unknown) {
         if (alive)
           setErrorMsg(
@@ -313,16 +516,18 @@ export default function MyBookings() {
             <div className="flex gap-2">
               <div className="rounded-2xl border bg-gray-50 px-4 py-3">
                 <p className="text-xs text-gray-500">Bookings</p>
-                <p className="text-sm font-semibold">{bookingLists.length}</p>
+                <p className="text-sm font-semibold">
+                  {bookingLists.length + eventBookingLists.length}
+                </p>
               </div>
               <div className="rounded-2xl border bg-gray-50 px-4 py-3">
                 <p className="text-xs text-gray-500">Total spent</p>
                 <p className="text-sm font-semibold">
-                  {formatMoney(totalSpent)}
-                </p>
-              </div>
+                {formatMoney(totalSpent)}
+              </p>
             </div>
           </div>
+        </div>
 
           <Separator />
 
@@ -351,7 +556,10 @@ export default function MyBookings() {
             </div>
           )}
 
-          {!isLoading && !errorMsg && bookingLists.length === 0 && (
+          {!isLoading &&
+            !errorMsg &&
+            bookingLists.length === 0 &&
+            eventBookingLists.length === 0 && (
             <div className="rounded-2xl border bg-gray-50 p-6 text-gray-700">
               <p className="font-medium">No bookings found</p>
               <p className="text-sm text-gray-600 mt-1">
@@ -395,6 +603,51 @@ export default function MyBookings() {
                 <div className="grid gap-4">
                   {activeBookings.map((b) => (
                     <BookingCard key={b.id} booking={b} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {!isLoading && !errorMsg && eventBookingLists.length > 0 && (
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">
+                  Event bookings
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-2 rounded-2xl border bg-gray-50 p-1">
+                {tabs.map((tab) => {
+                  const isActive = tab.key === activeEventTab;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      className={
+                        "inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm transition " +
+                        (isActive
+                          ? "bg-white font-semibold text-gray-900 shadow-sm"
+                          : "font-medium text-gray-600 hover:text-gray-900")
+                      }
+                      onClick={() => setActiveEventTab(tab.key)}
+                    >
+                      <span>{tab.label}</span>
+                      <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-700">
+                        {groupedEventBookings[tab.key].length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {activeEventBookings.length === 0 ? (
+                <div className="rounded-2xl border bg-gray-50 p-4 text-sm text-gray-600">
+                  {emptyMessages[activeEventTab]}
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {activeEventBookings.map((b) => (
+                    <EventBookingCard key={b.id} booking={b} />
                   ))}
                 </div>
               )}

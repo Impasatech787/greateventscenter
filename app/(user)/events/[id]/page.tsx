@@ -8,8 +8,10 @@ import {
   Ticket,
   Music2,
 } from "lucide-react";
-import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
+import { headers } from "next/headers";
+
+export const dynamic = "force-dynamic";
 
 type EventDetail = {
   id: number;
@@ -41,7 +43,7 @@ async function getBaseUrl() {
 async function fetchEvent(id: string): Promise<EventDetail | null> {
   const baseUrl = await getBaseUrl();
   const res = await fetch(`${baseUrl}/api/events/${id}`, {
-    next: { revalidate: 30 },
+    cache: "no-store",
   });
   if (!res.ok) return null;
   const data = await res.json();
