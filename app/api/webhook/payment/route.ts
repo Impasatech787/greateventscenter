@@ -192,6 +192,37 @@ export async function POST(req: Request) {
           }
         }
 
+        if (event.type === "refund.updated") {
+          const refund = event.data.object as Stripe.Refund;
+          const paymentIntentId =
+            typeof refund.payment_intent === "string"
+              ? refund.payment_intent
+              : refund.payment_intent?.id;
+
+          if (paymentIntentId) {
+            if (refund.status === "succeeded") {
+              await tx.payment.update({
+                where: { stripePaymentIntentId: paymentIntentId },
+                data: {
+                  status: "REFUNDED",
+                  stripeEventLastId: event.id,
+                },
+              });
+            } else if (
+              refund.status === "failed" ||
+              refund.status === "canceled"
+            ) {
+              await tx.payment.update({
+                where: { stripePaymentIntentId: paymentIntentId },
+                data: {
+                  status: "SUCCEEDED",
+                  stripeEventLastId: event.id,
+                },
+              });
+            }
+          }
+        }
+
         if (paymentIntentId) {
           const pay = await tx.payment.findUnique({
             where: { stripePaymentIntentId: paymentIntentId },

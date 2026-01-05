@@ -92,6 +92,7 @@ function BookingCard({ booking }: { booking: Booking }) {
     booking.paymentStatus === PaymentStatus.SUCCEEDED;
 
   const isRefunded = booking.paymentStatus === PaymentStatus.REFUNDED;
+  const isRefundPending = booking.paymentStatus === PaymentStatus.REFUND_PENDING;
   const downloadTicket = async (bookingId: number) => {
     setIsDownloading(true);
     try {
@@ -198,6 +199,10 @@ function BookingCard({ booking }: { booking: Booking }) {
                   {isRefunded ? (
                     <div className="rounded-xl bg-green-600 px-4 py-2 text-sm font-medium text-white">
                       Refunded
+                    </div>
+                  ) : isRefundPending ? (
+                    <div className="rounded-xl bg-yellow-500 px-4 py-2 text-sm font-medium text-white">
+                      Refund Processing
                     </div>
                   ) : (
                     <button

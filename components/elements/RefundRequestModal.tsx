@@ -150,9 +150,9 @@ export default function RefundRequestModal({
                   Refund request submitted.
                 </p>
                 <p className="mt-1 text-sm text-green-800/90">
-                  {success.status
-                    ? `Status: ${success.status}`
-                    : "Stripe is processing your refund."}
+                  {success.status === "succeeded"
+                    ? "Refund processed successfully."
+                    : "Stripe is processing your refund. It may take 1-5 business days to appear in your account."}
                 </p>
                 {success.refundId && (
                   <p className="mt-2 text-xs text-green-900/80">

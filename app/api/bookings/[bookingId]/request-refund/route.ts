@@ -90,9 +90,12 @@ export const POST = withAuth(
         );
       }
 
-      if (booking.payment.status === PaymentStatus.REFUNDED) {
+      if (
+        booking.payment.status === PaymentStatus.REFUNDED ||
+        booking.payment.status === PaymentStatus.REFUND_PENDING
+      ) {
         return NextResponse.json(
-          { error: "Already refunded" },
+          { error: "Already refunded or refund in progress" },
           { status: 409 }
         );
       }
@@ -132,14 +135,17 @@ export const POST = withAuth(
         );
 
         const isSucceeded = refund.status === "succeeded";
+        const isPending = refund.status === "pending";
 
-        // If Stripe already completed the refund, update our DB immediately.
-        // Otherwise, leave the DB as-is and rely on webhook `charge.refunded`.
-        if (isSucceeded) {
+        if (isSucceeded || isPending) {
           await prisma.$transaction([
             prisma.payment.update({
               where: { id: booking.payment.id },
-              data: { status: PaymentStatus.REFUNDED },
+              data: {
+                status: isSucceeded
+                  ? PaymentStatus.REFUNDED
+                  : PaymentStatus.REFUND_PENDING,
+              },
             }),
             prisma.booking.update({
               where: { id: booking.id },
