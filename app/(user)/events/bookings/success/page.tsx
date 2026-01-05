@@ -1,7 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +31,7 @@ type VerifyState =
     }
   | { status: "error"; message: string };
 
-export default function EventBookingSuccessPage() {
+function EventBookingSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -193,5 +200,13 @@ export default function EventBookingSuccessPage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+export default function EventBookingSuccessPage() {
+  return (
+    <Suspense>
+      <EventBookingSuccess />
+    </Suspense>
   );
 }
