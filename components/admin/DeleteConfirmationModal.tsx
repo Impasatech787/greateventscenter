@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X, AlertTriangle, Loader, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
+import { ApiError } from "@/types/ApiError";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -44,7 +45,7 @@ export const DeleteConfirmationModal: React.FC<
       }, 300);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : `Failed to delete ${itemType}`,
+        err instanceof ApiError ? err.message : `Failed to delete ${itemType}`,
       );
     } finally {
       setLoading(false);

@@ -1,34 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RotatingText } from "./RotatingText";
 import { CardStack } from "./CardStack";
 import { Button } from "../ui/button";
+import apiClient from "@/lib/axios";
+import { ApiResponse } from "@/types/apiResponse";
+
+type HomeBanner = {
+  title: string;
+  bannerHero: string;
+  bannerUrl: string;
+};
 
 const HomeBanner = () => {
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
-  const heroImageSets = [
-    // Events
-    [
-      "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1464047736614-af63643285bf?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=800&q=80",
-    ],
-    // Movies
-    [
-      "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1594908900066-3f47337549d8?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1574267432644-f610a4b3a929?auto=format&fit=crop&w=800&q=80",
-    ],
-    // Weddings
-    [
-      "https://images.unsplash.com/photo-1763553113332-800519753e40?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1519657502999-ab785d28a1f6?auto=format&fit=crop&w=800&q=80",
-      "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=800&q=80",
-    ],
-  ];
+  const [heroTexts, setHeroTexts] = useState<string[]>([]);
+  const [imageSets, setImageSets] = useState<string[][]>([]);
 
-  const heroImages = heroImageSets[currentTextIndex];
+  const fetchHomeBanner = async () => {
+    try {
+      const res =
+        await apiClient.get<ApiResponse<HomeBanner[]>>("/home-banner");
+      const heroTexts: string[] = [];
+      const heroImages: string[][] = [];
+
+      const heroIndexMap = new Map<string, number>();
+      if (res) {
+        res.data.data.forEach(({ bannerHero, bannerUrl }) => {
+          if (!heroIndexMap.has(bannerHero)) {
+            heroIndexMap.set(bannerHero, heroTexts.length);
+            heroTexts.push(bannerHero);
+            heroImages.push([]);
+          }
+
+          const index = heroIndexMap.get(bannerHero)!;
+          heroImages[index].push(bannerUrl);
+        });
+        setHeroTexts(heroTexts);
+        setImageSets(heroImages);
+      }
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchHomeBanner();
+  }, []);
+
+  const heroImages = imageSets[currentTextIndex];
 
   return (
     <div className="min-h-screen lg:min-h-[90vh] bg-[#FDFBF9] overflow-hidden flex items-center pt-24 pb-12 lg:py-0">
@@ -42,7 +61,7 @@ const HomeBanner = () => {
               </span>
               <br className="hidden lg:block" />
               <RotatingText
-                texts={["events", "movies", "weddings"]}
+                texts={heroTexts}
                 className="text-[#BB2327]"
                 interval={3000}
                 onIndexChange={setCurrentTextIndex}
@@ -61,19 +80,19 @@ const HomeBanner = () => {
                 Inquiry Now
               </Button>
             </div>
-
-
           </div>
 
           {/* Right: Polaroid Stack */}
           <div className="w-full lg:w-1/2 flex justify-center lg:justify-end relative h-[400px] md:h-[500px] lg:h-[550px] z-0 mt-8 lg:mt-0">
             <div className="relative w-full max-w-[320px] md:max-w-[400px] lg:max-w-[500px] h-full">
-              <CardStack
-                images={heroImages}
-                interval={3000}
-                width="100%"
-                height="100%"
-              />
+              {heroImages && (
+                <CardStack
+                  images={heroImages}
+                  interval={3000}
+                  width="100%"
+                  height="100%"
+                />
+              )}
             </div>
           </div>
         </div>

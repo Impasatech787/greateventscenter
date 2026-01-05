@@ -30,23 +30,7 @@ export function RotatingText({
 
   // Function to highlight specific keywords in red
   const highlightKeywords = (text: string) => {
-    const keywords = ["movie", "wedding", "venue"];
-    const parts = text.split(/\b/); // Split by word boundaries
-
-    return parts.map((part, i) => {
-      const isKeyword = keywords.some(
-        (keyword) => part.toLowerCase() === keyword.toLowerCase(),
-      );
-
-      if (isKeyword) {
-        return (
-          <span key={i} className="text-[#BB2327]">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
+    return <span className="text-[#BB2327]">{text}</span>;
   };
 
   return (

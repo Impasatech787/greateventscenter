@@ -319,8 +319,11 @@ model seatPrice {
 
 model homeBanner{
   id         Int      @id @default(autoincrement())
+  title   String
   bannerUrl String
   bannerHero String
+  isActive Boolean @default(false)
+    createdAt        DateTime @default(now())
 }
 
 

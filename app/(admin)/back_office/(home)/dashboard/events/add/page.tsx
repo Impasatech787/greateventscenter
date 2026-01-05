@@ -96,8 +96,7 @@ export default function AddEventPage() {
   }>({ startX: 0, startY: 0, originX: 0, originY: 0, dragging: false });
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const searchParams = useSearchParams();
-  const { data, loading, error: venuesError, call } =
-    useApi<EventVenue[]>();
+  const { data, loading, error: venuesError, call } = useApi<EventVenue[]>();
   const allowedThumbnailTypes = useMemo(
     () => ["image/png", "image/jpeg", "image/webp", "image/gif"],
     [],
@@ -157,9 +156,7 @@ export default function AddEventPage() {
           category: eventToEdit.category,
           status: eventToEdit.status,
           capacity:
-            eventToEdit.capacity !== null
-              ? String(eventToEdit.capacity)
-              : "",
+            eventToEdit.capacity !== null ? String(eventToEdit.capacity) : "",
           price:
             eventToEdit.priceCents !== null
               ? (eventToEdit.priceCents / 100).toFixed(2)
@@ -172,7 +169,7 @@ export default function AddEventPage() {
         setError(
           fetchError instanceof Error
             ? fetchError.message
-            : "Unable to load event."
+            : "Unable to load event.",
         );
         setEditingId(null);
       } finally {
@@ -289,7 +286,7 @@ export default function AddEventPage() {
             authorization: `Bearer ${token}`,
           },
           body: formPayload,
-        }
+        },
       );
 
       if (!response.ok) {
@@ -306,15 +303,15 @@ export default function AddEventPage() {
       setFormState(defaultFormState);
       setThumbnailFile(null);
       setThumbnailPreview(null);
-    setPendingThumbnail(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  } catch (submitError) {
+      setPendingThumbnail(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "Failed to save event."
+          : "Failed to save event.",
       );
     } finally {
       setIsSubmitting(false);
@@ -509,7 +506,9 @@ export default function AddEventPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Date</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Date
+                </label>
                 <Input
                   type="date"
                   value={formState.date}
